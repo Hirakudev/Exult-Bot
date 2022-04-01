@@ -5,13 +5,14 @@
 <details>
 <summary><h2>Current Core Developers</h2></summary>
 <ul>
+<li><a href="https://github.com/Hirakudev">Hiraku</a></li>
 <li><a href="https://github.com/Lemony-Juicy">Jeet</a></li>
 <li><a href="https://github.com/LeoCx1000">Leo</a></li>
 <li><a href="https://github.com/VarMonke">Var</a></li>
 <details>
 <summary><h3>Special Thanks</h3></summary>
 <ul>
-<li><a href="https://github.com/Lemony-Juicy">Jeet</a></li>
+<li><a href="https://github.com/Bucolo">Buco</a></li>
 <li><a href="https://github.com/ethanolchik">Ethan</a></li>
 </ul>
 </details>
