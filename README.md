@@ -12,7 +12,7 @@
 <details>
 <summary><h3>Special Thanks</h3></summary>
 <ul>
-<li><a href="https://github.com/Lemony-Juicy">Jeet</a></li>
+<li><a href="https://github.com/Bucolo">Buco</a></li>
 <li><a href="https://github.com/ethanolchik">Ethan</a></li>
 </ul>
 </details>
