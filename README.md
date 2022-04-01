@@ -275,5 +275,12 @@
 <ul>
 </details>
 
+<details>
+<summary>Custom Commands</summary>
+<ul>
+<li>Add/Edit/Remove custom command</li>
+<ul>
+</details>
+
 </details>
 </details>
