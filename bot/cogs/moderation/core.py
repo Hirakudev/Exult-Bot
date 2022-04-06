@@ -22,5 +22,5 @@ class Core(ExultCog):
             thumbnail=None if not itr.guild.icon else itr.guild.icon.url
         )
 
-        await bot.try_send(member, "hi test", embed=embed)
-        await followup.send("end")
+        await bot.try_send(member, embed=embed)
+        
