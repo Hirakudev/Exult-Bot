@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS guilds (
     guild_id BIGINT PRIMARY KEY,
-    moderator_role BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
+    moderator_roles BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
     moderator_users BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
-    admin_role BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
+    admin_roles BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
     admin_users BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
     suggestions_channel_id BIGINT,
     suggestions_safemode BIGINT
@@ -209,3 +209,61 @@ CREATE TABLE IF NOT EXISTS cases (
     last_updated TIMESTAMP,
     expires TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS commands(
+    user_id bigint NOT NULL,
+    command_name TEXT NOT NULL
+);
+
+-- LISTENERS
+CREATE OR REPLACE FUNCTION update_prefixes_cache()
+  RETURNS TRIGGER AS $$
+  BEGIN
+    IF TG_OP = 'DELETE' THEN
+      PERFORM pg_notify('delete_everything', OLD.guild_id::TEXT);
+    ELSEIF TG_OP = 'UPDATE' THEN
+        IF old.moderator_roles <> new.moderator_roles THEN
+          PERFORM pg_notify('update_moderator_roles',
+            JSON_BUILD_OBJECT(
+                  'guild_id', NEW.guild_id,
+                  'ids', NEW.moderator_roles
+                )::TEXT
+              );
+        END IF;
+        IF old.moderator_users <> new.moderator_users THEN
+          PERFORM pg_notify('update_moderator_users',
+            JSON_BUILD_OBJECT(
+                  'guild_id', NEW.guild_id,
+                  'ids', NEW.moderator_users
+                )::TEXT
+              );
+        END IF;
+        IF old.admin_roles <> new.admin_roles THEN
+          PERFORM pg_notify('update_admin_roles',
+            JSON_BUILD_OBJECT(
+                  'guild_id', NEW.guild_id,
+                  'ids', NEW.admin_roles
+                )::TEXT
+              );
+        END IF;
+        IF old.admin_users <> new.admin_users THEN
+          PERFORM pg_notify('update_admin_users',
+            JSON_BUILD_OBJECT(
+                  'guild_id', NEW.guild_id,
+                  'ids', NEW.admin_users
+                )::TEXT
+              );
+        END IF;
+    ELSE
+      PERFORM pg_notify('insert_everything', NEW.guild_id::TEXT);
+    END IF;
+    RETURN NEW;
+  END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_prefixes_cache_trigger ON guilds;
+CREATE TRIGGER update_prefixes_cache_trigger
+  AFTER INSERT OR UPDATE OR DELETE
+  ON guilds
+  FOR EACH ROW
+  EXECUTE PROCEDURE update_prefixes_cache();
