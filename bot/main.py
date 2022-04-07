@@ -14,7 +14,9 @@ load_dotenv("utils/.env")
 async def main():
     async with ClientSession() as session, \
             create_pool(environ["PSQL_URI"]) as pool, \
-            ExultBot(session=session, pool=pool) as bot:
+            pool.acquire() as listener_connection, \
+            ExultBot(session=session, pool=pool,
+                     listener_connection=listener_connection) as bot:
         await bot.start(environ["TEST_TOKEN"])
 
 

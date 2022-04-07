@@ -3,7 +3,7 @@ from discord import (Activity, ActivityType, Asset, Forbidden, Intents, Member, 
                      Message, DMChannel, Object, Interaction, Guild,
                      User, HTTPException, Embed)
 from discord.ext.commands import AutoShardedBot
-from discord.utils import oauth_url, utcnow
+from discord.utils import oauth_url, utcnow, _from_json, _to_json
 from discord.app_commands import ContextMenu, Command, AppCommandError
 from discord import InteractionType
 # Discord Imports
@@ -21,11 +21,10 @@ import pytz
 # Regular Imports
 
 class ExultBot(AutoShardedBot):
-    def __init__(self, *, session: ClientSession, pool: Pool, **kwargs):
+    def __init__(self, *, session: ClientSession, pool: Pool, listener_connection: Connection, **kwargs):
         self.startup_time: Optional[timedelta] = None
         self.start_time = utcnow()
         self.logger = getLogger(__name__)
-        self.owner_id = 957437570546012240
         self.app_guilds = [957469645089157120, 912148314223415316]
         self.pool: Pool = pool
         self.session: ClientSession = session
@@ -40,7 +39,8 @@ class ExultBot(AutoShardedBot):
         self.admin_roles: DefaultDict[int, Set[int]] = defaultdict(set)
         self.mod_users: DefaultDict[int, Set[int]] = defaultdict(set)
         self.admin_users: DefaultDict[int, Set[int]] = defaultdict(set)
-        self._db_listener_connection: Optional[Connection] = None
+        self._db_listener_connection: Connection = listener_connection
+        self.owner_id = 349373972103561218
 
     red = 0xfb5f5f
     green = 0x2ecc71
@@ -52,18 +52,19 @@ class ExultBot(AutoShardedBot):
         for ext in exts:
             await self.load_extension(ext)
         await self.populate_cache()
-        await self.init_listner()
+        await self.create_db_listeners()
 
-    async def populate_cache(self):
+    async def populate_cache(self, guild_id: Optional[int] = None) -> None:
         query = '''
             SELECT guild_id, 
                    moderator_users, 
                    moderator_roles, 
                    admin_users, 
                    admin_roles 
-            FROM guilds
+            FROM guilds 
+            WHERE CASE WHEN ($1::bigint = 0) THEN TRUE ELSE guild_id = $1 END
         '''
-        data = await self.pool.fetch(query)
+        data = await self.pool.fetch(query, guild_id or 0)
         for guild_id, moderator_users, moderator_roles, admin_users, admin_roles in data:
             self.mod_users[guild_id] = set(moderator_users)
             self.mod_roles[guild_id] = set(moderator_roles)
@@ -75,44 +76,52 @@ class ExultBot(AutoShardedBot):
 
         Registers listeners for database events.
         """
-        self._db_listener_connection: asyncpg.Connection = await self.pool.acquire()  # type: ignore
-
         async def _delete_everything_callback(conn, pid, channel, payload):
-            payload = discord.utils._from_json(payload)  # noqa
-            guild_id = int(payload["guild_id"])
-
-            def delete(entity: Any):
-                try:
-                    del entity
-                except (KeyError, AttributeError):
-                    pass
-
-            delete(self.mod_users[guild_id])
-            delete(self.mod_roles[guild_id])
-            delete(self.admin_users[guild_id])
-            delete(self.admin_roles[guild_id])
+            guild_id = int(payload)
+            exceptions = (KeyError, AttributeError, ValueError)
+            try:
+                del self.mod_users[guild_id]
+            except exceptions:
+                pass
+            try:
+                del self.mod_roles[guild_id]
+            except exceptions:
+                pass
+            try:
+                del self.admin_users[guild_id]
+            except exceptions:
+                pass
+            try:
+                del self.admin_roles[guild_id]
+            except exceptions:
+                pass
 
         async def _update_moderator_roles_callback(conn, pid, channel, payload):
-            payload = discord.utils._from_json(payload)  # noqa
+            print('update moderator roles')
+            payload = _from_json(payload)  # noqa
             self.mod_roles[payload['guild_id']] = set(payload['ids'])
 
         async def _update_moderator_users_callback(conn, pid, channel, payload):
-            payload = discord.utils._from_json(payload)  # noqa
+            payload = _from_json(payload)  # noqa
             self.mod_users[payload['guild_id']] = set(payload['ids'])
 
         async def _update_admin_roles_callback(conn, pid, channel, payload):
-            payload = discord.utils._from_json(payload)  # noqa
+            payload = _from_json(payload)  # noqa
             self.admin_roles[payload['guild_id']] = set(payload['ids'])
 
         async def _update_admin_users_callback(conn, pid, channel, payload):
-            payload = discord.utils._from_json(payload)  # noqa
+            payload = _from_json(payload)  # noqa
             self.admin_users[payload['guild_id']] = set(payload['ids'])
+
+        async def _insert_everything_callback(conn, pid, channel, payload):
+            await self.populate_cache(int(payload))
 
         await self._db_listener_connection.add_listener('delete_everything', _delete_everything_callback)
         await self._db_listener_connection.add_listener('update_moderator_roles', _update_moderator_roles_callback)
         await self._db_listener_connection.add_listener('update_moderator_users', _update_moderator_users_callback)
         await self._db_listener_connection.add_listener('update_admin_roles', _update_admin_roles_callback)
         await self._db_listener_connection.add_listener('update_admin_users', _update_admin_users_callback)
+        await self._db_listener_connection.add_listener('insert_everything', _insert_everything_callback)
 
     async def on_ready(self):
         self.startup_time = utcnow() - self.start_time

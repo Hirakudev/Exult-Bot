@@ -210,7 +210,7 @@ CREATE TABLE IF NOT EXISTS cases (
     expires TIMESTAMP
 );
 
-CREATE TABLE commands(
+CREATE TABLE IF NOT EXISTS commands(
     user_id bigint NOT NULL,
     command_name TEXT NOT NULL
 );
@@ -220,7 +220,7 @@ CREATE OR REPLACE FUNCTION update_prefixes_cache()
   RETURNS TRIGGER AS $$
   BEGIN
     IF TG_OP = 'DELETE' THEN
-      PERFORM pg_notify('delete_everything', NEW.guild_id::TEXT);
+      PERFORM pg_notify('delete_everything', OLD.guild_id::TEXT);
     ELSEIF TG_OP = 'UPDATE' THEN
         IF old.moderator_roles <> new.moderator_roles THEN
           PERFORM pg_notify('update_moderator_roles',
@@ -254,11 +254,14 @@ CREATE OR REPLACE FUNCTION update_prefixes_cache()
                 )::TEXT
               );
         END IF;
+    ELSE
+      PERFORM pg_notify('insert_everything', NEW.guild_id::TEXT);
     END IF;
     RETURN NEW;
   END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_prefixes_cache_trigger ON guilds;
 CREATE TRIGGER update_prefixes_cache_trigger
   AFTER INSERT OR UPDATE OR DELETE
   ON guilds
