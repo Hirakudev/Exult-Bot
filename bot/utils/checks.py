@@ -1,12 +1,15 @@
 from discord import Interaction
 from discord.app_commands import check, MissingPermissions, BotMissingPermissions
 from discord import Permissions
-#Discord Imports
+# Discord Imports
 
-from .database import GuildsDB
+from . import ExultBot
+
 
 async def is_owner(itr: Interaction):
-    return await itr.client.is_owner(itr.user)
+    bot: ExultBot = itr.client  # type: ignore
+    return await bot.is_owner(itr.user)
+
 
 def permissions(**perms: bool):
     user_invalid = perms.keys() - Permissions.VALID_FLAGS.keys()
@@ -15,16 +18,17 @@ def permissions(**perms: bool):
         raise TypeError(f"Invalid user permission(s): {', '.join(user_invalid)}")
     if bot_invalid:
         raise TypeError(f"Invalid bot permission(s): {', '.join(bot_invalid)}")
+
     async def predicate(itr: Interaction):
         final_result = [False, False]
-        #See if bot is able to carry out command.
+        # See if bot is able to carry out command.
         me = itr.guild.me if itr.guild is not None else itr.client.user
         if itr.channel is None:
-            permissions = Permissions.none()
+            _perms = Permissions.none()
         else:
-            permissions = itr.channel.permissions_for(me)
+            _perms = itr.channel.permissions_for(me)
 
-        missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
+        missing = [perm for perm, value in perms.items() if getattr(_perms, perm) != value]
 
         if not missing:
             final_result[1] = True
@@ -34,9 +38,9 @@ def permissions(**perms: bool):
         if await is_owner(itr):
             return True
 
-        #See if user is able to run command.
-        permissions = itr.permissions
-        missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
+        # See if user is able to run command.
+        _perms = itr.permissions
+        missing = [perm for perm, value in perms.items() if getattr(_perms, perm) != value]
         if not missing:
             final_result[0] = True
         else:
@@ -47,19 +51,21 @@ def permissions(**perms: bool):
 
     return check(predicate)
 
+
 def guild_staff():
     async def predicate(itr: Interaction):
         if await is_owner(itr):
             return True
-        staff_roles = await GuildsDB(itr.client).get_staff_roles(itr.guild.id)
-        staff_users = await GuildsDB(itr.client).get_staff(itr.guild.id)
-        if itr.user in staff_users["moderator_users"] or itr.user in staff_users["admin_users"]:
+        bot: ExultBot = itr.client  # type: ignore
+        if not itr.guild:
+            return False
+        guild_id = itr.guild.id
+        if itr.user in bot.mod_users or itr.user in bot.admin_users:
             return True
-        for role in itr.user.roles:
-            if role.id in staff_roles["moderator_roles"]:
-                return True
-            elif role.id in staff_roles["admin_roles"]:
-                return True
+        if any(r.id in bot.admin_roles[guild_id]
+               or r.id in bot.mod_roles[guild_id]
+               for r in itr.user.roles):
+            return True
+        return False
 
     return check(predicate)
-        
