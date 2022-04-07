@@ -1,4 +1,5 @@
-from discord import (Activity, ActivityType, Forbidden, Intents, Member, Permissions,
+from datetime import datetime
+from discord import (Activity, ActivityType, Asset, Forbidden, Intents, Member, Permissions,
                      Message, DMChannel, Object, Interaction, Guild,
                      User, HTTPException, Embed)
 from discord.ext.commands import AutoShardedBot
@@ -13,6 +14,7 @@ from logging import getLogger
 from waifuim import WaifuAioClient
 from sys import exc_info
 from typing import Optional, Union
+import pytz
 #Regular Imports
 
 class ExultBot(AutoShardedBot):
@@ -119,3 +121,14 @@ class ExultBot(AutoShardedBot):
             await user.send(*args, **kwargs)
         except Forbidden:
             pass
+
+    @staticmethod
+    def try_asset(asset: Asset, backup: Asset=None):
+        """ Insert a backup `Asset` if `asset` is None """
+        if not asset and not backup:
+            return None
+        return backup.url if not asset else asset.url
+
+    @staticmethod
+    def time(time: datetime):
+        return pytz.utc.localize(time)
