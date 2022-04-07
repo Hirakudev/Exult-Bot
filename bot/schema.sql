@@ -169,11 +169,11 @@ CREATE TABLE IF NOT EXISTS log_config (
     guild_id BIGINT PRIMARY KEY
         REFERENCES guilds(guild_id)
             ON DELETE CASCADE,
-    guild_logs INT,
-    message_logs INT,
-    user_logs INT,
-    moderation_logs INT,
-    voice_logs INT
+    guild_logs BIGINT,
+    message_logs BIGINT,
+    user_logs BIGINT,
+    moderation_logs BIGINT,
+    voice_logs BIGINT
 );
 
 CREATE TABLE IF NOT EXISTS custom_commands (
@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS cases (
     user_id BIGINT NOT NULL,
     moderator_id BIGINT NOT NULL,
     reason TEXT NOT NULL,
-    created_at DATE NOT NULL,
-    last_updated DATE,
-    expires DATE
+    created_at TIMESTAMP NOT NULL,
+    last_updated TIMESTAMP,
+    expires TIMESTAMP
 );
