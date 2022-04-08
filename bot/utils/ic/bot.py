@@ -47,7 +47,7 @@ class ExultBot(AutoShardedBot):
     invite = oauth_url(889185777555210281, permissions=Permissions(3757567166))
 
     async def setup_hook(self):
-        exts = ["jishaku", "cogs.moderation"]
+        exts = ["jishaku", "cogs.moderation", "cogs.fun"]
         for ext in exts:
             await self.load_extension(ext)
         await self.populate_cache()

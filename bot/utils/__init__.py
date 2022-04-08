@@ -1,5 +1,5 @@
 from .ic import *
-from .views import Paginator, CaseEditModal
+from .views import *
 from .database import *
 from .types import *
 # Directories
