@@ -9,7 +9,8 @@ import parsedatetime as pdt
 import datetime
 # Regular Imports
 
-from . import HexType, ExultBot
+from utils.types import HexType
+from utils.ic import ExultBot
 # Local Imports
 
 
