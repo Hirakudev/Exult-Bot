@@ -1,6 +1,5 @@
-from discord import Interaction, Member, User, Webhook
+from discord import Interaction, Member, Webhook
 from discord.app_commands import command, describe
-from discord.utils import format_dt, utcnow, as_chunks
 #Discord Imports
 
 import datetime
@@ -12,6 +11,7 @@ from utils import *
 class Stats(ExultCog):
 
     @command(name="modstats", description="View moderation stats for a given member.")
+    @describe(member="The member you want to view moderation stats for.")
     async def modstats_slash(self, itr: Interaction, member: Member=None):
         await itr.response.defer()
         bot: ExultBot = itr.client
@@ -49,3 +49,4 @@ class Stats(ExultCog):
                                       ["Warns (Last 7 days)", f"{len(warns_7)}", True], ["Warns (Last Month)", f"{len(warns_28)}", True], ["Warns (All Time)", f"{len(warns_all)}", True]])
 
         await followup.send(embed=embed)
+

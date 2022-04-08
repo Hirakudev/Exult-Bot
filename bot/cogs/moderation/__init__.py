@@ -5,12 +5,14 @@ from .core import Core
 from .purge import Purge
 from .slowmode import Slowmode
 from .stats import Stats
+from .cases import Cases
+from .case import Case
 #Cog Imports
 
 from utils import *
 #Local Imports
 
-class Moderation(Core, Purge, Slowmode, Stats):
+class Moderation(Core, Purge, Slowmode, Stats, Cases, Case):
     """Moderation Cog"""
 
 async def setup(bot: ExultBot):
