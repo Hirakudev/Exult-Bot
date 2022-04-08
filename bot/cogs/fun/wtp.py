@@ -1,4 +1,3 @@
-from re import L
 from discord import Interaction, Webhook
 from discord.app_commands import command
 # Discord Imports
