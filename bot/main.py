@@ -3,9 +3,9 @@ from os import environ
 from aiohttp import ClientSession
 from asyncpg import create_pool
 from asyncio import run
+# Regular Imports
 
 from utils import *
-
 # Local Imports
 
 load_dotenv("utils/.env")
