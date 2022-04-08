@@ -16,8 +16,7 @@ class Slowmode(ExultCog):
     @slowmode.command(name="on", description="Enable slowmode for a given channel.")
     @describe(duration="How long you want the slowmode to last (Max 6 hours).",
               channel="The channel you want to activate slowmode in.")
-    @permissions(manage_channels=True)
-    @guild_staff()
+    @guild_staff(manage_channels=True)
     async def slowmode_on_slash(self, itr: Interaction, duration: str, channel: TextChannel=None):
         await itr.response.defer()
         followup: Webhook = itr.followup
@@ -38,8 +37,7 @@ class Slowmode(ExultCog):
 
     @slowmode.command(name="off", description="Disable slowmode for a given channel.")
     @describe(channel="The channel you want to activate slowmode in.")
-    @permissions(manage_channels=True)
-    @guild_staff()
+    @guild_staff(manage_channels=True)
     async def slowmode_off_slash(self, itr: Interaction, channel: TextChannel=None):
         await itr.response.defer()
         followup: Webhook = itr.followup

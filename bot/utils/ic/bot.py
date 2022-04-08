@@ -40,7 +40,6 @@ class ExultBot(AutoShardedBot):
         self.mod_users: DefaultDict[int, Set[int]] = defaultdict(set)
         self.admin_users: DefaultDict[int, Set[int]] = defaultdict(set)
         self._db_listener_connection: Connection = listener_connection
-        self.owner_id = 349373972103561218
 
     red = 0xfb5f5f
     green = 0x2ecc71
@@ -151,7 +150,7 @@ class ExultBot(AutoShardedBot):
                       colour=self.red,
                       timestamp=utcnow()
                       )
-        await self.get_channel(961090013624401970).send(embed=embed)
+        await self.get_channel(961776237490094150).send(embed=embed)
         return await super().on_error(event, *args, **kwargs)
 
     async def on_tree_error(self, interaction: Interaction, command: Optional[Union[ContextMenu, Command]],

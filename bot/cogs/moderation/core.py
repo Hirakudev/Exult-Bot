@@ -13,8 +13,8 @@ class Core(ExultCog):
 
     @command(name="ban", description="Ban a member from the server.")
     @describe(member="A member you want to ban.", reason="The reason for the ban.")
-    @guild_staff()
-    @permissions(ban_members=True)
+    @guild_staff(ban_members=True)
+    @moderation(self_action=True)
     async def ban_slash(self, itr: Interaction, member: Member, reason: str="Unspecified"):
         bot: ExultBot = itr.client
         await itr.response.defer()
@@ -46,8 +46,8 @@ class Core(ExultCog):
 
     @command(name="kick", description="Kick a member from the server.")
     @describe(member="A member you want to kick.", reason="The reason for the kick.")
-    @guild_staff()
-    @permissions(kick_members=True)
+    @guild_staff(kick_members=True)
+    @moderation(self_action=True)
     async def kick_slash(self, itr: Interaction, member: Member, reason: str="Unspecified"):
         bot: ExultBot = itr.client
         await itr.response.defer()
@@ -79,8 +79,8 @@ class Core(ExultCog):
 
     @command(name="unban", description="Unban a user from the server.")
     @describe(user="A user you want to unban.", reason="The reason for the unban.")
-    @guild_staff()
-    @permissions(ban_members=True)
+    @guild_staff(ban_members=True)
+    @moderation(self_action=True)
     async def unban_slash(self, itr: Interaction, user: User, reason: str="Unspecified"):
         bot: ExultBot = itr.client
         await itr.response.defer()
@@ -114,8 +114,8 @@ class Core(ExultCog):
 
     @command(name="mute", description="Mute a member in the server. (Uses Timeout, not Role)")
     @describe(member="A member you want to mute.", reason="The reason for the mute.")
-    @guild_staff()
-    @permissions(moderate_members=True)
+    @guild_staff(moderate_members=True)
+    @moderation(self_action=True)
     async def mute_slash(self, itr: Interaction, member: Member, reason: str="Unspecified"):
         if member.timed_out_until:
             return
@@ -155,8 +155,8 @@ class Core(ExultCog):
     @describe(member="A member you want to mute.", 
               duration="How long you would like the mute to last",
               reason="The reason for the mute.")
-    @guild_staff()
-    @permissions(moderate_members=True)
+    @guild_staff(moderate_members=True)
+    @moderation(self_action=True)
     async def tempmute_slash(self, itr: Interaction, member: Member, duration: str, reason: str="Unspecified"):
         if member.timed_out_until:
             return
@@ -194,8 +194,8 @@ class Core(ExultCog):
 
     @command(name="unmute", description="Unmute a member in the server. (Uses Timeout, not Role)")
     @describe(member="A member you want to unmute.", reason="The reason for the unmute.")
-    @guild_staff()
-    @permissions(moderate_members=True)
+    @guild_staff(moderate_members=True)
+    @moderation(self_action=True)
     async def unmute_slash(self, itr: Interaction, member: Member, reason: str="Unspecified"):
         if not member.timed_out_until:
             return
