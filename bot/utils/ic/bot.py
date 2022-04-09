@@ -16,8 +16,6 @@ from sys import exc_info
 from typing import Optional, Union, DefaultDict, Set, Any
 from collections import defaultdict
 import pytz
-
-
 # Regular Imports
 
 class ExultBot(AutoShardedBot):
@@ -25,7 +23,7 @@ class ExultBot(AutoShardedBot):
         self.startup_time: Optional[timedelta] = None
         self.start_time = utcnow()
         self.logger = getLogger(__name__)
-        self.app_guilds = [957469645089157120, 912148314223415316]
+        self.app_guilds = [912148314223415316]
         self.pool: Pool = pool
         self.session: ClientSession = session
         self.wf: WaifuAioClient = WaifuAioClient(session=self.session, appname="Exult")

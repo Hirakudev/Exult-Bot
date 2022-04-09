@@ -13,8 +13,5 @@ class FunHelper:
     async def convertSoup(self, link, user_agent=None):
         if not user_agent:
             user_agent = self.HEADER
-        if user_agent:
-            async with self.bot.session.get(link, headers=user_agent, timeout=5) as data:
-                return BeautifulSoup(data.content, 'html.parser')
-        async with self.bot.session.get(link, timeout=5) as data:
+        async with self.bot.session.get(link, headers=user_agent, timeout=5) as data:
             return BeautifulSoup(data.content, 'html.parser')
