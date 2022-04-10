@@ -4,8 +4,6 @@ CREATE TABLE IF NOT EXISTS guilds (
     moderator_users BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
     admin_roles BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
     admin_users BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
-    suggestions_channel_id BIGINT,
-    suggestions_safemode BIGINT
 );
 
 CREATE TABLE IF NOT EXISTS counting_config (
@@ -205,9 +203,9 @@ CREATE TABLE IF NOT EXISTS cases (
     user_id BIGINT NOT NULL,
     moderator_id BIGINT NOT NULL,
     reason TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    last_updated TIMESTAMP,
-    expires TIMESTAMP
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    last_updated TIMESTAMP WITHOUT TIME ZONE,
+    expires TIMESTAMP WITHOUT TIME ZONE
 );
 
 CREATE TABLE IF NOT EXISTS commands(
@@ -216,7 +214,7 @@ CREATE TABLE IF NOT EXISTS commands(
 );
 
 -- LISTENERS
-CREATE OR REPLACE FUNCTION update_prefixes_cache()
+CREATE OR REPLACE FUNCTION update_guild_staff_cache()
   RETURNS TRIGGER AS $$
   BEGIN
     IF TG_OP = 'DELETE' THEN
@@ -261,9 +259,22 @@ CREATE OR REPLACE FUNCTION update_prefixes_cache()
   END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS update_prefixes_cache_trigger ON guilds;
-CREATE TRIGGER update_prefixes_cache_trigger
+DROP TRIGGER IF EXISTS update_guild_staff_cache_trigger ON guilds;
+CREATE TRIGGER update_guild_staff_cache_trigger
   AFTER INSERT OR UPDATE OR DELETE
   ON guilds
   FOR EACH ROW
-  EXECUTE PROCEDURE update_prefixes_cache();
+  EXECUTE PROCEDURE update_guild_staff_cache();
+
+
+levelling_config
+levelling_rewards
+levelling_users
+log_config
+modmail_config
+shop
+stats_tracker
+suggestions
+ticket_panels
+tickets
+
