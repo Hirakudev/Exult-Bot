@@ -3,6 +3,15 @@ from ._core import CoreDB
 
 class GuildsDB(CoreDB):
 
+    async def add_guild(self, guild_id: int):
+        async with self.pool.acquire() as conn:
+            await conn.execute("INSERT INTO guilds (guild_id) VALUES ($1)", guild_id)
+
+    async def remove_guild(self, guild_id: int):
+        async with self.pool.acquire() as conn:
+            await conn.execute("DELETE FROM guilds WHERE guild_id=$1", guild_id)
+            
+
     async def get_staff_roles(self, guild_id: int):
         async with self.pool.acquire() as conn:
             roles = dict(await conn.fetchrow("SELECT moderator_roles, admin_roles FROM guilds WHERE guild_id=$1", guild_id))
