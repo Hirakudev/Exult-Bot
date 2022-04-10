@@ -20,6 +20,7 @@ import pytz
 
 class ExultBot(AutoShardedBot):
     def __init__(self, *, session: ClientSession, pool: Pool, listener_connection: Connection, **kwargs):
+        self._connected = False
         self.startup_time: Optional[timedelta] = None
         self.start_time = utcnow()
         self.logger = getLogger(__name__)
@@ -45,7 +46,7 @@ class ExultBot(AutoShardedBot):
     invite = oauth_url(889185777555210281, permissions=Permissions(3757567166))
 
     async def setup_hook(self):
-        exts = ["jishaku", "cogs.moderation", "cogs.fun"]
+        exts = ["jishaku", "cogs.moderation", "cogs.fun", "cogs.guild_config"]
         for ext in exts:
             await self.load_extension(ext)
         await self.populate_cache()
@@ -94,7 +95,6 @@ class ExultBot(AutoShardedBot):
                 pass
 
         async def _update_moderator_roles_callback(conn, pid, channel, payload):
-            print('update moderator roles')
             payload = _from_json(payload)  # noqa
             self.mod_roles[payload['guild_id']] = set(payload['ids'])
 
@@ -121,10 +121,15 @@ class ExultBot(AutoShardedBot):
         await self._db_listener_connection.add_listener('insert_everything', _insert_everything_callback)
 
     async def on_ready(self):
-        self.startup_time = utcnow() - self.start_time
-        msg = f"Successfully logged into {self.user}. ({round(self.latency * 1000)}ms)\n" \
-              f"Startup Time: {self.startup_time.total_seconds():.2f} seconds."
-        print(msg)
+        if self._connected:
+            msg = f"Bot reconnected at {datetime.now().strftime('%b %d %Y %H:%M:%S')}"
+            print(msg)
+        else:
+            self.startup_time = utcnow() - self.start_time
+            msg = f"Successfully logged into {self.user}. ({round(self.latency * 1000)}ms)\n" \
+                f"Startup Time: {self.startup_time.total_seconds():.2f} seconds."
+            print(msg)
+            self._connected = True
 
     async def on_message(self, message: Message):
         if isinstance(message.channel, DMChannel) and await self.is_owner(message.author):
