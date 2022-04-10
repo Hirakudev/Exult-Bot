@@ -40,13 +40,17 @@ class ExultBot(AutoShardedBot):
         self.admin_users: DefaultDict[int, Set[int]] = defaultdict(set)
         self._db_listener_connection: Connection = listener_connection
 
+        self.exult_guild = None
+        self.bot_logs = None
+        self.dev_role = None
+
     red = 0xfb5f5f
     green = 0x2ecc71
     gold = 0xf1c40f
     invite = oauth_url(889185777555210281, permissions=Permissions(3757567166))
 
     async def setup_hook(self):
-        exts = ["jishaku", "cogs.moderation", "cogs.fun", "cogs.guild_config"]
+        exts = ["jishaku", "cogs.moderation", "cogs.fun", "cogs.guild_config", "cogs.bot_events"]
         for ext in exts:
             await self.load_extension(ext)
         await self.populate_cache()
@@ -125,11 +129,15 @@ class ExultBot(AutoShardedBot):
             msg = f"Bot reconnected at {datetime.now().strftime('%b %d %Y %H:%M:%S')}"
             print(msg)
         else:
+            self.exult_guild = self.get_guild(912148314223415316)
+            self.bot_logs = self.get_channel(961278438965116949)
+            self.error_logs = self.get_channel(961090013624401970)
+            self.dev_role = self.exult_guild.get_role(914159464406470656)
+            self._connected = True
             self.startup_time = utcnow() - self.start_time
             msg = f"Successfully logged into {self.user}. ({round(self.latency * 1000)}ms)\n" \
                 f"Startup Time: {self.startup_time.total_seconds():.2f} seconds."
             print(msg)
-            self._connected = True
 
     async def on_message(self, message: Message):
         if isinstance(message.channel, DMChannel) and await self.is_owner(message.author):
