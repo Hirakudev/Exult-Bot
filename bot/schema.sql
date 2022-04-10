@@ -265,16 +265,3 @@ CREATE TRIGGER update_guild_staff_cache_trigger
   ON guilds
   FOR EACH ROW
   EXECUTE PROCEDURE update_guild_staff_cache();
-
-
-levelling_config
-levelling_rewards
-levelling_users
-log_config
-modmail_config
-shop
-stats_tracker
-suggestions
-ticket_panels
-tickets
-
