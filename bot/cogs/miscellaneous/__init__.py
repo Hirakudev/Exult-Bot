@@ -8,7 +8,7 @@ from utils import *
 #Local Imports
 
 
-class Miscellaneous():
+class Miscellaneous(ExultCog):
     """ Miscellaneous Cog """
 
 async def setup(bot: ExultBot):

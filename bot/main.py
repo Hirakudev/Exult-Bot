@@ -8,7 +8,7 @@ from asyncio import run
 from utils import *
 # Local Imports
 
-load_dotenv("utils/.env")
+load_dotenv(r"bot/utils/.env")
 
 
 async def main():
