@@ -1,4 +1,4 @@
-from discord import Embed, Interaction
+from discord import Embed, Interaction, Permissions
 from discord.ext.commands import BadArgument, Context
 # Discord Imports
 
@@ -132,3 +132,25 @@ def time_handler(time) -> datetime.datetime:
     except:
         raise BadArgument("Make sure you format your duration correctly! `(e.g. 5 hours 30 minutes)`")
     return localised
+
+def get_perms(permissions: Permissions):
+    if permissions.administrator:
+        return ['Administrator']
+    elevated = [x[0] for x in Permissions.elevated() if x[1] is True]
+    wanted_perms = dict({x for x in permissions if x[1] is True and x[0] in elevated})
+    return sorted([p.replace('_', ' ').replace('guild', 'server').title() for p in wanted_perms])
+
+emojis = {
+    "bal": "<:Balance:951943457193214014>  ",
+    "brav": "<:Bravery:951943457738477608>  ",
+    "bril": "<:Brilliance:951943457214169160>  ",
+    "hype": "<:Hypesquad:951943457700720660>  ",
+    "early": "<:EarlySupporter:951943457621028864>  ",
+    "bugh": "<:BugHunter:951943457511964792>  ",
+    "bugh2": "<:BugHunter2:951943457629405264>  ",
+    "dpart": "<:DiscordPartner:951943457495207986>  ",
+    "dstaff": "<:DiscordStaff:951943457721700402>  ",
+    "earlydev": "<:EarlyVerifiedBotDev:951943458174689391>  ",
+    "dmod": "<:DiscordCertifiedModerator:951945202963198062>  ",
+    "bot": "<:VerifiedBot:951943457788813363>  "
+}
