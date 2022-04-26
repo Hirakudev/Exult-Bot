@@ -1,6 +1,7 @@
 from discord.ext.commands import Cog, Bot
 from discord import Object, app_commands, Interaction, TextChannel, Message
 import asyncio
+import discord
 
 
 class Modder:
@@ -79,6 +80,13 @@ class Modder:
                 return
 
 
+async def analyseForBlacklisted(message, blacklisted):
+    c = message.content.split()
+    for word in c:
+        for b in blacklisted:
+            if word == b:
+                return await message.delete()
+
 
 class Automod(Cog):
     def __init__(self, bot: Bot):
@@ -90,11 +98,57 @@ class Automod(Cog):
         """Add channel ID to a db"""
         pass
 
+    @app_commands.command(name='showautomod', description='show automated modding channels')
+    async def showAutomod(self, interaction: Interaction):
+        channels = [x for x in await self.get_automod(interaction.guild.id) if self.bot.get_channel(x)]  # get from ur db
+        if not channels:
+            return await interaction.response.send_message("There are no automod channels :(")
+        channels = map(lambda x: f"<#{x}>", channels)
+        await interaction.response.send_message(
+            embed=discord.Embed(title="Automod Channels", description=', '.join(channels), colour=0x00af0c).set_footer(
+                text="To add or remove a channel do this command and mention a channel"
+            ))
+
+    @app_commands.command(name='blacklist', description="Add a word/remove it from blacklist, so when someone says it, the message will be deleted")
+    async def blacklist(self, interaction: Interaction, word: str):
+        """My method of adding a word to a db. Change this so it works for ur db.."""
+        blacklisted = await self.get_blacklisted(interaction.guild.id)  # get from ur db instead of this
+        message = " has been **added** to the blacklisted words"
+        if len(blacklisted) > 25 or len(word) > 50:
+            return await interaction.response.send_message(embed=discord.Embed(
+                description="```yaml\nThis is an invalid request because of one or more of the causes:\n"
+                            "-You have reached the maximum limit of storing blacklisted words (25 words)\n"
+                            "-Your word exceeds the maximum amount of characters (10 characters)```", colour=0xff0000))
+        if word in blacklisted:
+            message = " has been **removed** to the blacklisted words"
+            blacklisted.remove(word)
+        else:
+            blacklisted.append(word)
+        await self.db.update_server('blacklist_words', interaction.guild.id, 'blacklisted', blacklisted)
+        await interaction.response.send_message(embed=discord.Embed(description=word + message, colour=0x08ff05))
+
+    @app_commands.command(name='showblacklist', description="Show words from blacklist")
+    async def showBlacklisted(self, interaction: Interaction):
+        words = await self.get_blacklisted(interaction.guild.id)  # change this so it gets words from ur db
+        if not words:
+            return await interaction.response.send_message("There are no blacklisted words..")
+        words = map(lambda x: f"`{x}`", words)
+        await interaction.response.send_message(
+            embed=discord.Embed(title="Blacklisted words", description=', '.join(words), colour=0x00af0c).set_footer(
+                text="To add or remove a word do this command and provide a word/The word to remove if it already in the blacklist"
+            ))
+
     @Cog.listener()
     async def on_message(self, message: Message):
-        # if message.channel.id is in the database of channels that have the automod on:
         if message.author.guild_permissions.manage_messages:
-            await self.modder.check_all(message)
+            return
+
+        # if message.channel.id is in the database of channels that have the automod on:
+        await self.modder.check_all(message)
+
+        # if message.guild.id in the database for blacklisted:
+        await analyseForBlacklisted(message, blacklisted_words)
+
 
 
 async def setup(bot: Bot):
