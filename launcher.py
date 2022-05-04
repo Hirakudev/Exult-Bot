@@ -3,7 +3,6 @@ import os
 import aiohttp
 import asyncpg
 import asyncio
-import platform
 
 # Regular Imports
 
