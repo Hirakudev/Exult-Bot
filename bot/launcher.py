@@ -1,25 +1,25 @@
-from dotenv import load_dotenv
-from os import environ
-from aiohttp import ClientSession
-from asyncpg import create_pool
-from asyncio import run
+import dotenv
+import os
+import aiohttp
+import asyncpg
+import asyncio
+import platform
 # Regular Imports
 
 from bot import ExultBot
 from utils import *
 # Local Imports
 
-load_dotenv()
-
+dotenv.load_dotenv()
 
 async def main():
-    async with ClientSession() as session, \
-            create_pool(environ["TEST_PSQL_URI"]) as pool, \
+    async with aiohttp.ClientSession() as session, \
+            asyncpg.create_pool(os.environ["TEST_PSQL_URI"]) as pool, \
             pool.acquire() as listener_connection, \
             ExultBot(session=session, pool=pool,
                      listener_connection=listener_connection) as bot:
-        await bot.start(environ["TEST_TOKEN"])
+        await bot.start(os.environ["TEST_TOKEN"])
 
 
 if __name__ == "__main__":
-    run(main())
+    asyncio.run(main())
