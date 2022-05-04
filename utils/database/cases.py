@@ -54,21 +54,21 @@ class CasesDB(CoreDB):
     async def get_case(self, guild_id: int, case_id: int):
         async with self.pool.acquire() as conn:
             async with conn.transaction():
-                case = dict(
-                    await conn.fetchrow("SELECT * FROM cases WHERE case_id=$1", case_id)
+                case = await conn.fetchrow(
+                    "SELECT * FROM cases WHERE case_id=$1", case_id
                 )
                 if case["guild_id"] == guild_id:
-                    return case
+                    return dict(case)
         return False
 
     async def fetch_case(self, case_id: int):
         async with self.pool.acquire() as conn:
             async with conn.transaction():
-                case = dict(
-                    await conn.fetchrow("SELECT * FROM cases WHERE case_id=$1", case_id)
+                case = await conn.fetchrow(
+                    "SELECT * FROM cases WHERE case_id=$1", case_id
                 )
                 if case:
-                    return case
+                    return dict(case)
         return None
 
     async def update_case(self, guild_id: int, case_id: int, reason: str):
