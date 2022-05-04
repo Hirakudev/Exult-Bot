@@ -11,8 +11,8 @@ import datetime
 import logging
 import pytz
 import sys
-import typing
 import waifuim
+from typing import Optional, Set, Union
 
 # Regular Imports
 
@@ -27,7 +27,7 @@ class ExultBot(commands.AutoShardedBot):
         **kwargs,
     ):
         self._connected = False
-        self.startup_time: typing.Optional[datetime.timedelta] = None
+        self.startup_time: Optional[datetime.timedelta] = None
         self.start_time = discord.utils.utcnow()
         self.logger = logging.getLogger(__name__)
         self.app_guilds = [912148314223415316]
@@ -45,16 +45,16 @@ class ExultBot(commands.AutoShardedBot):
             intents=discord.Intents.all(),
         )
         self.mod_roles: collections.DefaultDict[
-            int, typing.Set[int]
+            int, Set[int]
         ] = collections.defaultdict(set)
         self.admin_roles: collections.DefaultDict[
-            int, typing.Set[int]
+            int, Set[int]
         ] = collections.defaultdict(set)
         self.mod_users: collections.DefaultDict[
-            int, typing.Set[int]
+            int, Set[int]
         ] = collections.defaultdict(set)
         self.admin_users: collections.DefaultDict[
-            int, typing.Set[int]
+            int, Set[int]
         ] = collections.defaultdict(set)
         self._db_listener_connection: asyncpg.Connection = listener_connection
 
@@ -83,7 +83,7 @@ class ExultBot(commands.AutoShardedBot):
         await self.populate_cache()
         await self.create_db_listeners()
 
-    async def populate_cache(self, guild_id: typing.Optional[int] = None) -> None:
+    async def populate_cache(self, guild_id: Optional[int] = None) -> None:
         query = """
             SELECT guild_id, 
                    moderator_users, 
@@ -220,9 +220,7 @@ class ExultBot(commands.AutoShardedBot):
     async def on_tree_error(
         self,
         interaction: discord.Interaction,
-        command: typing.Optional[
-            typing.Union[app_commands.ContextMenu, app_commands.Command]
-        ],
+        command: Optional[Union[app_commands.ContextMenu, app_commands.Command]],
         error: app_commands.AppCommandError,
     ):
         if command and getattr(command, "on_error", None):
@@ -274,9 +272,7 @@ class ExultBot(commands.AutoShardedBot):
             return None
 
     @staticmethod
-    async def get_or_fetch_member(
-        guild: discord.Guild, user: typing.Union[discord.User, int]
-    ):
+    async def get_or_fetch_member(guild: discord.Guild, user: Union[discord.User, int]):
         user = user.id if isinstance(user, discord.User) else user
         try:
             return guild.get_member(user) or await guild.fetch_member(user)
@@ -284,9 +280,7 @@ class ExultBot(commands.AutoShardedBot):
             return None
 
     @staticmethod
-    async def try_send(
-        user: typing.Union[discord.User, discord.Member], *args, **kwargs
-    ):
+    async def try_send(user: Union[discord.User, discord.Member], *args, **kwargs):
         try:
             await user.send(*args, **kwargs)
         except discord.Forbidden:
