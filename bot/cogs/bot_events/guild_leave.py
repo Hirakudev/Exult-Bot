@@ -3,8 +3,8 @@ from discord.ext import commands
 
 from utils import *
 
-class GuildLeave(ExultCog):
 
+class GuildLeave(ExultCog):
     @commands.Cog.listener(name="on_guild_remove")
     async def remove_guild(self, guild: discord.Guild):
         await GuildsDB(self.bot).remove_guild(guild.id)
@@ -23,8 +23,11 @@ class GuildLeave(ExultCog):
                          **Owner:** {guild.owner} | `{guild.owner.id}`
                          **Total Users:**
                          👨 {users} | 🤖 {bots} | 💫 {total}""",
-            author=[self.bot.try_asset(self.bot.user.avatar), f"Guilds: {guilds} | Users: {_users}"],
+            author=[
+                self.bot.try_asset(self.bot.user.avatar),
+                f"Guilds: {guilds} | Users: {_users}",
+            ],
             thumbnail=self.bot.try_asset(guild.icon),
-            footer=f"ID: {guild.id}"
+            footer=f"ID: {guild.id}",
         )
         await self.bot.bot_logs.send(embed=embed)

@@ -3,13 +3,15 @@ from discord.ext import commands
 
 from utils import *
 
-class GuildJoin(ExultCog):
 
+class GuildJoin(ExultCog):
     @commands.Cog.listener(name="on_guild_join")
     async def add_guild(self, guild: discord.Guild):
         await GuildsDB(self.bot).add_guild(guild.id)
 
-        async for log in guild.audit_logs(limit=1, action=discord.AuditLogAction.bot_add):
+        async for log in guild.audit_logs(
+            limit=1, action=discord.AuditLogAction.bot_add
+        ):
             added_by = log.user
         users = len([user for user in guild.members if not user.bot])
         bots = len([user for user in guild.members if user.bot])
@@ -28,9 +30,14 @@ class GuildJoin(ExultCog):
                          **Total Users:**
                          👨 {users} | 🤖 {bots} | 💫 {total}
                          **Bot Farm Risk:** `{'No' if not risk else 'Yes'}`""",
-            author=[self.bot.try_asset(self.bot.user.avatar), f"Guilds: {guilds} | Users: {_users}"],
+            author=[
+                self.bot.try_asset(self.bot.user.avatar),
+                f"Guilds: {guilds} | Users: {_users}",
+            ],
             colour=self.bot.green,
             thumbnail=self.bot.try_asset(guild.icon),
-            footer=f"ID: {guild.id}"
+            footer=f"ID: {guild.id}",
         )
-        await self.bot.bot_logs.send(content="" if not risk else self.bot.dev_role.mention, embed=embed)
+        await self.bot.bot_logs.send(
+            content="" if not risk else self.bot.dev_role.mention, embed=embed
+        )

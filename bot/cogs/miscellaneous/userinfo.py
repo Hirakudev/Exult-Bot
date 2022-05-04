@@ -1,19 +1,26 @@
 import discord
 from discord import app_commands
+
 # Discord Imports
 
 from humanize.number import ordinal
-#Regular Imports
+
+# Regular Imports
 
 from bot import ExultBot
 from utils import *
+
 # Local Imports
 
-class UserInfo(ExultCog):
 
-    @app_commands.command(name="userinfo", description="Display info on a given member.")
+class UserInfo(ExultCog):
+    @app_commands.command(
+        name="userinfo", description="Display info on a given member."
+    )
     @app_commands.describe(user="The user you want to display info for.")
-    async def userinfo_slash(self, itr: discord.Interaction, user: discord.Member=None):
+    async def userinfo_slash(
+        self, itr: discord.Interaction, user: discord.Member = None
+    ):
         await itr.response.defer()
         bot: ExultBot = itr.client
         followup: discord.Webhook = itr.followup
@@ -24,18 +31,45 @@ class UserInfo(ExultCog):
         ac = user.activity
         uf = discord.UserFlags
 
-        _status = {"online": "🟢 Online", "idle": "🟠 Idle", "dnd": "🔴 DND", "offline": "⚫ Offline", "streaming": "🟣 Streaming"}
-        _badges = {uf.hypesquad_balance: emojis["bal"], uf.hypesquad_bravery: emojis["brav"],
-                  uf.hypesquad_brilliance: emojis["bril"], uf.hypesquad: emojis["hype"],
-                  uf.early_supporter: emojis["early"], uf.bug_hunter: emojis["bugh"],
-                  uf.bug_hunter_level_2: emojis["bugh2"], uf.partner: emojis["dpart"],
-                  uf.staff: emojis["dstaff"], uf.verified_bot_developer: emojis["earlydev"],
-                  uf.discord_certified_moderator: emojis["dmod"], uf.verified_bot: emojis["bot"]}
-        
+        _status = {
+            "online": "🟢 Online",
+            "idle": "🟠 Idle",
+            "dnd": "🔴 DND",
+            "offline": "⚫ Offline",
+            "streaming": "🟣 Streaming",
+        }
+        _badges = {
+            uf.hypesquad_balance: emojis["bal"],
+            uf.hypesquad_bravery: emojis["brav"],
+            uf.hypesquad_brilliance: emojis["bril"],
+            uf.hypesquad: emojis["hype"],
+            uf.early_supporter: emojis["early"],
+            uf.bug_hunter: emojis["bugh"],
+            uf.bug_hunter_level_2: emojis["bugh2"],
+            uf.partner: emojis["dpart"],
+            uf.staff: emojis["dstaff"],
+            uf.verified_bot_developer: emojis["earlydev"],
+            uf.discord_certified_moderator: emojis["dmod"],
+            uf.verified_bot: emojis["bot"],
+        }
+
         status = _status[str(user.status)]
         badges = [_badges[f[0]] for f in fg if fg[1]]
-        roles = "Member has no roles." if not len(user.roles[1:]) else str([role.mention for role in user.roles]).replace("[", "").replace("]", "").replace("'", "")
-        position = "Couldn't retrieve member position" if not user.joined_at else ordinal(sorted([m.joined_at for m in guild.members]).index(user.joined_at) + 1)
+        roles = (
+            "Member has no roles."
+            if not len(user.roles[1:])
+            else str([role.mention for role in user.roles])
+            .replace("[", "")
+            .replace("]", "")
+            .replace("'", "")
+        )
+        position = (
+            "Couldn't retrieve member position"
+            if not user.joined_at
+            else ordinal(
+                sorted([m.joined_at for m in guild.members]).index(user.joined_at) + 1
+            )
+        )
 
         if ac:
             if isinstance(ac, discord.Spotify):
@@ -54,23 +88,44 @@ class UserInfo(ExultCog):
         banner = _user.banner.url
 
         embed = embed_builder(
-            author=[bot.try_asset(user.avatar.url, user.default_avatar.url), f"User Info: {user}"],
+            author=[
+                bot.try_asset(user.avatar.url, user.default_avatar.url),
+                f"User Info: {user}",
+            ],
             description=f"{activity}{badges}",
             thumbnail=bot.try_asset(user.avatar.url, user.default_avatar.url),
             image=bot.try_asset(banner),
             footer=f"{position} member to join {guild.name}",
             fields=[
-                ["Account Created:", discord.utils.format_dt(user.created_at, style='R'), True], 
-                [f"Joined {guild.name}:", discord.utils.format_dt(user.joined_at, style='R'), True],
-                ["Boosting Since:", "Not boosting" if not user.premium_since else discord.utils.format_dt(user.premium_since, style='R'), True],
-                ["Nickname:", user.display_name, True], ["Discriminator", user.discriminator, True], 
+                [
+                    "Account Created:",
+                    discord.utils.format_dt(user.created_at, style="R"),
+                    True,
+                ],
+                [
+                    f"Joined {guild.name}:",
+                    discord.utils.format_dt(user.joined_at, style="R"),
+                    True,
+                ],
+                [
+                    "Boosting Since:",
+                    "Not boosting"
+                    if not user.premium_since
+                    else discord.utils.format_dt(user.premium_since, style="R"),
+                    True,
+                ],
+                ["Nickname:", user.display_name, True],
+                ["Discriminator", user.discriminator, True],
                 ["User Type", "Bot" if user.bot else "Human"],
-                ["Status:", status, True], 
-                ["Colour:", user.colour, True], ["Highest Role", "No roles" if not len(user.roles[1:]) else user.top_role.mention, True],
-                ["Number of Roles:", str(len(user.roles[1:])), True], ["Roles:", reversed(roles), False]
-            ]
+                ["Status:", status, True],
+                ["Colour:", user.colour, True],
+                [
+                    "Highest Role",
+                    "No roles" if not len(user.roles[1:]) else user.top_role.mention,
+                    True,
+                ],
+                ["Number of Roles:", str(len(user.roles[1:])), True],
+                ["Roles:", reversed(roles), False],
+            ],
         )
         await followup.send(embed=embed)
-
-
-

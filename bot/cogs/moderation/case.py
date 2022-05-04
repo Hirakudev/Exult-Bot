@@ -1,19 +1,28 @@
 import discord
 from discord import app_commands
+
 # Discord Imports
 
 import datetime
+
 # Regular Imports
 
 from bot import ExultBot
 from utils import *
+
 # Local Imports
 
-class Case(ExultCog):
-    
-    case = app_commands.Group(name="case", description="Handle Moderation Cases stored for this server!")
 
-    @case.command(name="display", description="Display information on a Moderation Case from this server.")
+class Case(ExultCog):
+
+    case = app_commands.Group(
+        name="case", description="Handle Moderation Cases stored for this server!"
+    )
+
+    @case.command(
+        name="display",
+        description="Display information on a Moderation Case from this server.",
+    )
     @app_commands.describe(case_id="The ID of the case you want to view.")
     @guild_staff(manage_messages=True)
     async def case_display_slash(self, itr: discord.Interaction, case_id: int):
@@ -27,7 +36,9 @@ class Case(ExultCog):
         if not case:
             return
 
-        embed = embed_builder(author=[bot.try_asset(guild.icon), f"Cases for {guild.name}"])
+        embed = embed_builder(
+            author=[bot.try_asset(guild.icon), f"Cases for {guild.name}"]
+        )
         if not case["last_updated"]:
             last_updated = f"__Case Updated:__ {discord.utils.format_dt(bot.time(case['created_at']), style='R')}"
         elif case["last_updated"]:
@@ -36,8 +47,11 @@ class Case(ExultCog):
             case_activity = "__Case Activity:__ `Completed`"
         elif case["expires"]:
             is_active = bot.time(datetime.datetime.utcnow()) < bot.time(case["expires"])
-            case_activity = "__Case Activity:__ `Completed`" if not is_active else \
-                            f"__Case Activity:__ `Expires in` {discord.utils.format_dt(bot.time(case['expires']), style='R')}"
+            case_activity = (
+                "__Case Activity:__ `Completed`"
+                if not is_active
+                else f"__Case Activity:__ `Expires in` {discord.utils.format_dt(bot.time(case['expires']), style='R')}"
+            )
         value = f"""
                 __Case Type:__ `{case['case_type']}`
                 __Case Offender:__ {case['user_id']}
@@ -50,7 +64,9 @@ class Case(ExultCog):
 
         await followup.send(embed=embed)
 
-    @case.command(name="delete", description="Delete a Moderation Case from this server.")
+    @case.command(
+        name="delete", description="Delete a Moderation Case from this server."
+    )
     @app_commands.describe(case_id="The ID of the case you want to delete.")
     @guild_staff(manage_messages=True)
     @moderation(self_action=True)

@@ -1,6 +1,7 @@
 from discord import Interaction, Member
 from discord.app_commands import check, MissingPermissions, BotMissingPermissions
 from discord import Permissions
+
 # Discord Imports
 
 from bot import ExultBot
@@ -40,7 +41,7 @@ def permissions(perms, itr: Interaction):
         return True
 
 
-def guild_staff(*, admin: bool=False, **perms: bool):
+def guild_staff(*, admin: bool = False, **perms: bool):
     user_invalid = perms.keys() - Permissions.VALID_FLAGS.keys()
     bot_invalid = set(perms) - set(Permissions.VALID_FLAGS)
     if user_invalid:
@@ -49,25 +50,28 @@ def guild_staff(*, admin: bool=False, **perms: bool):
         raise TypeError(f"Invalid bot permission(s): {', '.join(bot_invalid)}")
 
     async def predicate(itr: Interaction):
-        if await is_owner(itr): #If the user is the bot owner, return True
+        if await is_owner(itr):  # If the user is the bot owner, return True
             return True
 
         bot: ExultBot = itr.client
-        if not itr.guild: #If the command isn't being run in a guild, return False
+        if not itr.guild:  # If the command isn't being run in a guild, return False
             return False
-        
+
         guild_id = itr.guild.id
         user_id = itr.user.id
 
         if not admin:
 
-            if user_id in bot.mod_users[guild_id] \
-                or user_id in bot.admin_users[guild_id]:
+            if (
+                user_id in bot.mod_users[guild_id]
+                or user_id in bot.admin_users[guild_id]
+            ):
                 return True
-            
-            elif any(r.id in bot.admin_roles[guild_id]
-                or r.id in bot.mod_roles[guild_id]
-                for r in itr.user.roles):
+
+            elif any(
+                r.id in bot.admin_roles[guild_id] or r.id in bot.mod_roles[guild_id]
+                for r in itr.user.roles
+            ):
                 return True
 
             elif permissions(perms, itr):
@@ -76,7 +80,7 @@ def guild_staff(*, admin: bool=False, **perms: bool):
         elif admin:
             if user_id in bot.admin_users[guild_id]:
                 return True
-            
+
             elif any(r.id in bot.admin_roles[guild_id] for r in itr.user.roles):
                 return True
 
@@ -86,6 +90,7 @@ def guild_staff(*, admin: bool=False, **perms: bool):
         return False
 
     return check(predicate)
+
 
 def moderation(**kwargs):
     async def predicate(itr: Interaction):

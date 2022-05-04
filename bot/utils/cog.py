@@ -1,8 +1,11 @@
 from discord.ext import commands
-#Discord Imports
+
+# Discord Imports
 
 from bot import ExultBot
-#Local Imports
+
+# Local Imports
+
 
 class ExultCog(commands.Cog):
     def __init__(self, bot: ExultBot):

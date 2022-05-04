@@ -1,17 +1,23 @@
 import discord
-#Discord Imports
+
+# Discord Imports
 
 from .guild_join import GuildJoin
 from .guild_leave import GuildLeave
-#Cog Imports
+
+# Cog Imports
 
 from bot import ExultBot
 from utils import *
-#Local Imports
+
+# Local Imports
 
 
 class BotEvents(GuildJoin, GuildLeave):
-    """ Bot Events Cog """
+    """Bot Events Cog"""
+
 
 async def setup(bot: ExultBot):
-    await bot.add_cog(BotEvents(bot), guilds=[discord.Object(guild) for guild in bot.app_guilds])
+    await bot.add_cog(
+        BotEvents(bot), guilds=[discord.Object(guild) for guild in bot.app_guilds]
+    )

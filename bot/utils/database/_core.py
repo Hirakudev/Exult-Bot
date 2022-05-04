@@ -1,11 +1,16 @@
 import discord
 
+# Discord Imports
+
 from typing import overload
 import asyncpg
-#Regular Imports
+
+# Regular Imports
 
 from bot import ExultBot
-#Local Imports
+
+# Local Imports
+
 
 class CoreDB:
     @overload
