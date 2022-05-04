@@ -81,6 +81,7 @@ class ExultBot(commands.AutoShardedBot):
             "cogs.guild_config",
             "cogs.bot_events",
             "cogs.miscellaneous",
+            "cogs.levelling",
         ]
         for ext in exts:
             await self.load_extension(ext)
