@@ -1,17 +1,17 @@
-from typing import overload
+import discord
 
-from asyncpg import Pool
-from discord import Client
+from typing import overload
+import asyncpg
 #Regular Imports
 
-from ..ic import ExultBot
+from bot import ExultBot
 #Local Imports
 
 class CoreDB:
     @overload
-    def __init__(self, bot: Client = None):
+    def __init__(self, bot: discord.Client = None):
         ...
 
     def __init__(self, bot: ExultBot = None):
         self.bot: ExultBot = bot
-        self.pool: Pool = bot.pool
+        self.pool: asyncpg.Pool = bot.pool

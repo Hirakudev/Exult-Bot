@@ -1,4 +1,4 @@
-from discord import Object
+import discord
 #Discord Imports
 
 from .core import Core
@@ -9,6 +9,7 @@ from .cases import Cases
 from .case import Case
 #Cog Imports
 
+from bot import ExultBot
 from utils import *
 #Local Imports
 
@@ -16,4 +17,4 @@ class Moderation(Core, Purge, Slowmode, Stats, Cases, Case):
     """Moderation Cog"""
 
 async def setup(bot: ExultBot):
-    await bot.add_cog(Moderation(bot), guilds=[Object(guild) for guild in bot.app_guilds])
+    await bot.add_cog(Moderation(bot), guilds=[discord.Object(guild) for guild in bot.app_guilds])

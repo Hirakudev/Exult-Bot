@@ -1,24 +1,24 @@
-from discord import Interaction, Role, Webhook
-from discord.app_commands import describe, Group, rename
-from discord.utils import format_dt, as_chunks
+import discord
+from discord import app_commands
 # Discord Imports
 
 #Regular Imports
 
+from bot import ExultBot
 from utils import *
 # Local Imports
 
 class Role(ExultCog):
 
-    role = Group(name="role", description="Get information on a specific role.")
+    role = app_commands.Group(name="role", description="Get information on a specific role.")
 
     @role.command(name="info", description="Display info on a given role.")
-    @rename(_role="role")
-    @describe(_role="The role you want to view info about.")
-    async def role_info_slash(self, itr: Interaction, _role: Role):
+    @app_commands.rename(_role="role")
+    @app_commands.describe(_role="The role you want to view info about.")
+    async def role_info_slash(self, itr: discord.Interaction, _role: discord.Role):
         await itr.response.defer()
         bot: ExultBot = itr.client
-        followup: Webhook = itr.followup
+        followup: discord.Webhook = itr.followup
         _permissions = str(get_perms(_role.permissions)).replace("[", "").replace("]", "").replace("'", "")
         _permissions = "No special permissions." if not len(_permissions) else _permissions
 
@@ -27,22 +27,23 @@ class Role(ExultCog):
             thumbnail=bot.try_asset(_role.icon),
             fields = [
                 ["ID:", str(_role.id), True], ["Name:", _role.name, True], ["Colour:", _role.colour, True],
-                ["Mention:", _role.mention, True], ["Hoisted:", "Yes" if _role.hoist else "No", True], ["Position:", _role.position, True],
-                ["Mentionable:", "Yes" if _role.mentionable else "No", True], ["Created:", format_dt(_role.created_at, "R"), True],
+                ["Mention:", _role.mention, True], ["Hoisted:", "Yes" if _role.hoist else "No", True], 
+                ["Position:", _role.position, True], ["Mentionable:", "Yes" if _role.mentionable else "No", True], 
+                ["Created:", discord.utils.format_dt(_role.created_at, "R"), True],
                 ["Members with Role:", len(_role.members), True], ["Important Permissions:", _permissions, False]
             ]
         )
         await followup.send(embed=embed)
 
     @role.command(name="members", description="Display members with a given role.")
-    @rename(_role="role")
-    @describe(_role="The role you want to view the members of.")
-    async def role_members_slash(self, itr: Interaction, _role: Role):
+    @app_commands.rename(_role="role")
+    @app_commands.describe(_role="The role you want to view the members of.")
+    async def role_members_slash(self, itr: discord.Interaction, _role: discord.Role):
         await itr.response.defer()
         bot: ExultBot = itr.client
-        followup: Webhook = itr.followup
+        followup: discord.Webhook = itr.followup
 
-        formatted_members = as_chunks(sorted([f"{str(member)} `{member.id}`" for member in _role.members]), 20)
+        formatted_members = discord.utils.as_chunks(sorted([f"{str(member)} `{member.id}`" for member in _role.members]), 20)
         embeds = []
 
         for members in formatted_members:

@@ -1,31 +1,32 @@
-from discord import Interaction, Webhook, Colour
-from discord.app_commands import command, describe
+import discord
+from discord import app_commands
 # Discord Imports
 
-from os import environ
-from json import loads
+import os
+import json
 #Regular Imports
 
+from bot import ExultBot
 from utils import *
 # Local Imports
 
 class Weather(ExultCog):
 
-    @command(name="weather", description="Get the weather forecast!")
-    @describe(destination="The place you want to view weather information on.")
-    async def weather_slash(self, itr: Interaction, destination: str):
+    @app_commands.command(name="weather", description="Get the weather forecast!")
+    @app_commands.describe(destination="The place you want to view weather information on.")
+    async def weather_slash(self, itr: discord.Interaction, destination: str):
         await itr.response.defer()
         bot: ExultBot = itr.client
-        followup: Webhook = itr.followup
+        followup: discord.Webhook = itr.followup
 
         url = "https://community-open-weather-map.p.rapidapi.com/weather"
         querystring = {"q": destination, "lat": "0", "lon": "0", "id": "2172797", "lang": "null",
                        "units": "\"metric\" or \"imperial\"", "mode": "xml, html"}
         h = {
-            'x-rapidapi-key': environ["RAPIDAPI_KEY"],
+            'x-rapidapi-key': os.environ["RAPIDAPI_KEY"],
             'x-rapidapi-host': "community-open-weather-map.p.rapidapi.com"}
         async with bot.session.get(url, headers=h, params=querystring) as data:
-            data = loads(await data.text())
+            data = json.loads(await data.text())
             if data.get("message"):
                 embed = embed_builder(description=f"No results found for `{destination}`")
                 await followup.send(embed=embed)
@@ -33,17 +34,17 @@ class Weather(ExultCog):
         feels_like = round(float(data["main"]["feels_like"])  - 273.15, 2)
         temp = round(float(data['main']['temp']) - 273.15, 2)
         if temp < -30:
-            colour = Colour.dark_blue()
+            colour = discord.Colour.dark_blue()
         elif temp >= -29 and temp <= 0:
-            colour = Colour.blue()
+            colour = discord.Colour.blue()
         elif temp >= 1 and temp <= 9:
             colour = 0xADD8E6
         elif temp >= 10 and temp <= 19:
-            colour = Colour.green()
+            colour = discord.Colour.green()
         elif temp >= 20:
-            colour = Colour.dark_gold()
+            colour = discord.Colour.dark_gold()
         else:
-            colour = Colour.random()
+            colour = discord.Colour.random()
 
         maxT, minT = round(float(data['main']['temp_max']) - 273.15, 2), round(
             float(data['main']['temp_min']) - 273.15, 2)

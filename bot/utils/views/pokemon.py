@@ -1,7 +1,6 @@
-from discord import Interaction, ButtonStyle
-from discord.ui import Modal, Button, View, TextInput
+import discord
 
-class PokemonGuessModal(Modal):
+class PokemonGuessModal(discord.ui.Modal):
     def __init__(self, data):
         self.data = data
         self.name = data["name"]
@@ -10,9 +9,9 @@ class PokemonGuessModal(Modal):
         self.types = data["types"]
         self.guess = None
         super().__init__(title="Who's That Pokemon?")
-        self.add_item(TextInput(label="Which pokemon do you think it is?", placeholder="e.g. Pikachu"))
+        self.add_item(discord.ui.TextInput(label="Which pokemon do you think it is?", placeholder="e.g. Pikachu"))
         
-    async def on_submit(self, interaction: Interaction):
+    async def on_submit(self, interaction: discord.Interaction):
         lives = self.data["lives"]
         guess = self.children[0].value
         self.guess = guess
@@ -43,19 +42,19 @@ class PokemonGuessModal(Modal):
             await interaction.message.edit(embed=embed, view=None)
             await interaction.response.send_message(f"You got it! It was {self.name}", ephemeral=True)
 
-class StartGuessPokemon(Button):
+class StartGuessPokemon(discord.ui.Button):
     def __init__(self, label, style, data):
         self.data = data
         self.answer = data["name"]
         super().__init__(style=style, label=label, custom_id=self.answer)
         
-    async def callback(self, interaction: Interaction):
+    async def callback(self, interaction: discord.Interaction):
         modal = PokemonGuessModal(self.data)
         await interaction.response.send_modal(modal)
         await modal.wait()
         self.view.guess = modal.guess
 
-class PokemonGuess(View):
+class PokemonGuess(discord.ui.View):
     def __init__(self, data):
         super().__init__()
-        self.add_item(StartGuessPokemon("Guess", ButtonStyle.blurple, data))
+        self.add_item(StartGuessPokemon("Guess", discord.ButtonStyle.blurple, data))

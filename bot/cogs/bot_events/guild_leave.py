@@ -1,12 +1,12 @@
-from discord import Guild, AuditLogAction
-from discord.ext.commands import Cog
+import discord
+from discord.ext import commands
 
 from utils import *
 
 class GuildLeave(ExultCog):
 
-    @Cog.listener(name="on_guild_remove")
-    async def remove_guild(self, guild: Guild):
+    @commands.Cog.listener(name="on_guild_remove")
+    async def remove_guild(self, guild: discord.Guild):
         await GuildsDB(self.bot).remove_guild(guild.id)
 
         users = len([user for user in guild.members if not user.bot])

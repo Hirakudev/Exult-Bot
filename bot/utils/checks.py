@@ -3,7 +3,7 @@ from discord.app_commands import check, MissingPermissions, BotMissingPermission
 from discord import Permissions
 # Discord Imports
 
-from . import ExultBot
+from bot import ExultBot
 
 
 async def is_owner(itr: Interaction):

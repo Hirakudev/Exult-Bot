@@ -1,18 +1,19 @@
-from discord import Interaction, Member, Webhook
-from discord.app_commands import command, describe
+import discord
+from discord import app_commands
 # Discord Imports
 
+from bot import ExultBot
 from utils import *
 # Local Imports
 
 class Avatar(ExultCog):
 
-    @command(name="avatar", description="UI for viewing a user's avatar and banner.")
-    @describe(user="The user that you want to view the avatar of.")
-    async def avatar_slash(self, itr: Interaction, user: Member=None):
+    @app_commands.command(name="avatar", description="UI for viewing a user's avatar and banner.")
+    @app_commands.describe(user="The user that you want to view the avatar of.")
+    async def avatar_slash(self, itr: discord.Interaction, user: discord.Member=None):
         await itr.response.defer()
         bot: ExultBot = itr.client
-        followup: Webhook = itr.followup
+        followup: discord.Webhook = itr.followup
         user = await bot.fetch_user(user.id or itr.user.id)
         avatar = bot.try_asset(user.avatar, user.default_avatar)
 

@@ -1,6 +1,6 @@
-from discord.utils import utcnow
+import discord
 
-from datetime import datetime
+import datetime
 #Regular Imports
 
 from .logs import LogsDB
@@ -9,12 +9,12 @@ from ._core import CoreDB
 
 class CasesDB(CoreDB):
 
-    def prepare_time(self, time: datetime=None):
+    def prepare_time(self, time: datetime.datetime=None):
         if time:
             return time.replace(tzinfo=None)
         return None
 
-    async def add_case(self, case_type: str, guild_id: int, user_id: int, moderator_id: int, reason: str, created_at: datetime, expires: datetime=None, **kwargs):
+    async def add_case(self, case_type: str, guild_id: int, user_id: int, moderator_id: int, reason: str, created_at: datetime.datetime, expires: datetime.datetime=None, **kwargs):
         async with self.pool.acquire() as conn:
             expires = self.prepare_time(expires)
             await conn.execute("INSERT INTO cases (case_type, guild_id, user_id, moderator_id, reason, created_at, expires) VALUES " \
@@ -44,7 +44,7 @@ class CasesDB(CoreDB):
             case = await self.get_case(guild_id, case_id)
             if isinstance(case, dict):
                 await conn.execute("UPDATE cases SET reason=$1 WHERE case_id=$2", reason, case_id)
-                await conn.execute("UPDATE cases SET last_updated=$1 WHERE case_id=$2", self.prepare_time(utcnow()), case_id)
+                await conn.execute("UPDATE cases SET last_updated=$1 WHERE case_id=$2", self.prepare_time(discord.utils.utcnow()), case_id)
                 return True
             return False
 

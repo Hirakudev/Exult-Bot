@@ -1,21 +1,22 @@
-from discord import Interaction, Member, Webhook
-from discord.app_commands import command, describe
+import discord
+from discord import app_commands
 #Discord Imports
 
 import datetime
 #Regular Imports
 
+from bot import ExultBot
 from utils import *
 #Local Imports
 
 class Stats(ExultCog):
 
-    @command(name="modstats", description="View moderation stats for a given member.")
-    @describe(member="The member you want to view moderation stats for.")
-    async def modstats_slash(self, itr: Interaction, member: Member=None):
+    @app_commands.command(name="modstats", description="View moderation stats for a given member.")
+    @app_commands.describe(member="The member you want to view moderation stats for.")
+    async def modstats_slash(self, itr: discord.Interaction, member: discord.Member=None):
         await itr.response.defer()
         bot: ExultBot = itr.client
-        followup: Webhook = itr.followup
+        followup: discord.Webhook = itr.followup
         member = member or itr.user
 
         cases = await CasesDB(bot).get_cases_by_moderator(itr.guild.id, member.id)

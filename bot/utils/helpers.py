@@ -1,5 +1,5 @@
-from discord import Embed, Interaction, Permissions
-from discord.ext.commands import BadArgument, Context
+import discord
+from discord.ext import commands
 # Discord Imports
 
 from typing import Union
@@ -9,15 +9,23 @@ import parsedatetime as pdt
 import datetime
 # Regular Imports
 
-from utils.types import HexType
-from utils.ic import ExultBot
+from bot import ExultBot
 # Local Imports
 
+class HexType:
+    def __init__(self, x):
+        if isinstance(x, str):
+            self.val = int(x, 16)
+        elif isinstance(x, int):
+            self.val = int(str(x), 16)
+
+    def __str__(self):
+        return hex(self.val)
 
 def embed_builder(*, title: str = None, description: str = None, colour: HexType = ExultBot.red, timestamp: bool = None,
                   author: Union[list, str] = None, footer: Union[list, str] = None, thumbnail: str = None,
                   image: str = None, fields: list = None, url: str = None):
-    embed = Embed()
+    embed = discord.Embed()
     if title:
         embed.title = title
     if description:
@@ -63,7 +71,7 @@ class ShortTime:
     def __init__(self, argument, *, now=None):
         match = self.compiled.fullmatch(argument)
         if match is None or not match.group(0):
-            raise BadArgument('invalid time provided')
+            raise commands.BadArgument('invalid time provided')
 
         data = {k: int(v) for k, v in match.groupdict(default=0).items()}
         now = now or datetime.datetime.now(datetime.timezone.utc)
@@ -81,7 +89,7 @@ class HumanTime:
         now = now or datetime.datetime.utcnow()
         dt, status = self.calendar.parseDT(argument, sourceTime=now)
         if not status.hasDateOrTime:
-            raise BadArgument("Make sure you format your duration correctly! `(e.g. 5 hours 30 minutes)`")
+            raise commands.BadArgument("Make sure you format your duration correctly! `(e.g. 5 hours 30 minutes)`")
 
         if not status.hasTime:
             dt = dt.replace(hour=now.hour, minute=now.minute, second=now.second, microsecond=now.microsecond)
@@ -91,9 +99,9 @@ class HumanTime:
 
     @classmethod
     async def convert(cls, ctx, argument):
-        if isinstance(ctx, Interaction):
+        if isinstance(ctx, discord.Interaction):
             return cls(argument, now=ctx.created_at)
-        elif isinstance(ctx, Context):
+        elif isinstance(ctx, commands.Context):
             return cls(argument, now=ctx.message.created_at)
 
 
@@ -122,7 +130,7 @@ class FutureTime(Time):
         super().__init__(argument, now=now)
 
         if self._past:
-            raise BadArgument("This time is in the past.")
+            raise commands.BadArgument("This time is in the past.")
 
 
 def time_handler(time) -> datetime.datetime:
@@ -130,13 +138,13 @@ def time_handler(time) -> datetime.datetime:
     try:
         localised = ExultBot.time(time)
     except:
-        raise BadArgument("Make sure you format your duration correctly! `(e.g. 5 hours 30 minutes)`")
+        raise commands.BadArgument("Make sure you format your duration correctly! `(e.g. 5 hours 30 minutes)`")
     return localised
 
-def get_perms(permissions: Permissions):
+def get_perms(permissions: discord.Permissions):
     if permissions.administrator:
         return ['Administrator']
-    elevated = [x[0] for x in Permissions.elevated() if x[1] is True]
+    elevated = [x[0] for x in discord.Permissions.elevated() if x[1] is True]
     wanted_perms = dict({x for x in permissions if x[1] is True and x[0] in elevated})
     return sorted([p.replace('_', ' ').replace('guild', 'server').title() for p in wanted_perms])
 

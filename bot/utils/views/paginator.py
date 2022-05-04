@@ -1,7 +1,6 @@
-from discord import ButtonStyle, Interaction
-from discord.ui import View, Button
+import discord
 
-class Paginator(View):
+class Paginator(discord.ui.View):
     def __init__(self, pages, page=0, start_end=False, step_10=False):
         super().__init__(timeout=120)
         self.page = page
@@ -20,21 +19,21 @@ class Paginator(View):
         previous_page = self.page - 1
         if previous_page < 0:
             previous_page = self.count - 1
-        self.add_item(PaginatorButton(label="◀", page=previous_page, style=ButtonStyle.red))
-        self.add_item(PaginatorButton(label=f"{self.page + 1} / {len(self.pages)}", style=ButtonStyle.grey, disabled=True))
+        self.add_item(PaginatorButton(label="◀", page=previous_page, style=discord.ButtonStyle.red))
+        self.add_item(PaginatorButton(label=f"{self.page + 1} / {len(self.pages)}", style=discord.ButtonStyle.grey, disabled=True))
         next_page = self.page + 1
         if next_page > self.count - 1:
             next_page = 0
-        self.add_item(PaginatorButton(label="▶", page=next_page, style=ButtonStyle.green))
+        self.add_item(PaginatorButton(label="▶", page=next_page, style=discord.ButtonStyle.green))
         for item in non_page_buttons:
             self.add_item(item)
             
-class PaginatorButton(Button["Paginator"]):
+class PaginatorButton(discord.ui.Button["Paginator"]):
     def __init__(self, label, style, row=0, page=None, disabled=False):
         super().__init__(style=style, label=label, row=row, disabled=disabled)
         self.page = page
 
-    async def callback(self, interaction: Interaction):
+    async def callback(self, interaction: discord.Interaction):
         self.pages = self.view.pages
         self.view.page = self.page
         self.view.add_buttons()

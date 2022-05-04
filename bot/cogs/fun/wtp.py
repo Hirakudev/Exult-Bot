@@ -1,18 +1,19 @@
-from discord import Interaction, Webhook
-from discord.app_commands import command
+import discord
+from discord import app_commands
 # Discord Imports
 
+from bot import ExultBot
 from utils import *
 from ._fun_helper import FunHelper
 # Local Imports
 
 class WTP(ExultCog):
 
-    @command(name="wtp", description="Who's that pokemon?")
-    async def wtp_slash(self, itr: Interaction):
+    @app_commands.command(name="wtp", description="Who's that pokemon?")
+    async def wtp_slash(self, itr: discord.Interaction):
         await itr.response.defer()
         bot: ExultBot = itr.client
-        followup: Webhook = itr.followup
+        followup: discord.Webhook = itr.followup
 
         async with bot.session.get("https://api.dagpi.xyz/data/wtp", headers={"Authorization": FunHelper.dagpi_token}) as data:
             data = await data.json()

@@ -1,27 +1,28 @@
-from discord import Interaction, Member, Webhook, UserFlags as uf, Spotify, ActivityType
-from discord.app_commands import command, describe
-from discord.utils import format_dt
+import discord
+from discord import app_commands
 # Discord Imports
 
 from humanize.number import ordinal
 #Regular Imports
 
+from bot import ExultBot
 from utils import *
 # Local Imports
 
 class UserInfo(ExultCog):
 
-    @command(name="userinfo", description="Display info on a given member.")
-    @describe(user="The user you want to display info for.")
-    async def userinfo_slash(self, itr: Interaction, user: Member=None):
+    @app_commands.command(name="userinfo", description="Display info on a given member.")
+    @app_commands.describe(user="The user you want to display info for.")
+    async def userinfo_slash(self, itr: discord.Interaction, user: discord.Member=None):
         await itr.response.defer()
         bot: ExultBot = itr.client
-        followup: Webhook = itr.followup
+        followup: discord.Webhook = itr.followup
 
         user = user or itr.user
         guild = itr.guild
         fg = user.public_flags
         ac = user.activity
+        uf = discord.UserFlags
 
         _status = {"online": "🟢 Online", "idle": "🟠 Idle", "dnd": "🔴 DND", "offline": "⚫ Offline", "streaming": "🟣 Streaming"}
         _badges = {uf.hypesquad_balance: emojis["bal"], uf.hypesquad_bravery: emojis["brav"],
@@ -37,11 +38,11 @@ class UserInfo(ExultCog):
         position = "Couldn't retrieve member position" if not user.joined_at else ordinal(sorted([m.joined_at for m in guild.members]).index(user.joined_at) + 1)
 
         if ac:
-            if isinstance(ac, Spotify):
+            if isinstance(ac, discord.Spotify):
                 activity = f"Listening to [{ac.title} - {ac.artist}]({ac.track_url})\n"
-            elif isinstance(ac, ActivityType.custom):
+            elif isinstance(ac, discord.ActivityType.custom):
                 activity = f"{str(ac)}\n"
-            elif isinstance(ac, ActivityType.unknown):
+            elif isinstance(ac, discord.ActivityType.unknown):
                 activity = ""
             else:
                 activity_type_list = str(ac.type).split(".")
@@ -59,10 +60,13 @@ class UserInfo(ExultCog):
             image=bot.try_asset(banner),
             footer=f"{position} member to join {guild.name}",
             fields=[
-                ["Account Created:", format_dt(user.created_at, style='R'), True], [f"Joined {guild.name}:", format_dt(user.joined_at, style='R'), True],
-                ["Boosting Since:", "Not boosting" if not user.premium_since else format_dt(user.premium_since, style='R'), True],
-                ["Nickname:", user.display_name, True], ["Discriminator", user.discriminator, True], ["User Type", "Bot" if user.bot else "Human"],
-                ["Status:", status, True], ["Colour:", user.colour, True], ["Highest Role", "No roles" if not len(user.roles[1:]) else user.top_role.mention, True],
+                ["Account Created:", discord.utils.format_dt(user.created_at, style='R'), True], 
+                [f"Joined {guild.name}:", discord.utils.format_dt(user.joined_at, style='R'), True],
+                ["Boosting Since:", "Not boosting" if not user.premium_since else discord.utils.format_dt(user.premium_since, style='R'), True],
+                ["Nickname:", user.display_name, True], ["Discriminator", user.discriminator, True], 
+                ["User Type", "Bot" if user.bot else "Human"],
+                ["Status:", status, True], 
+                ["Colour:", user.colour, True], ["Highest Role", "No roles" if not len(user.roles[1:]) else user.top_role.mention, True],
                 ["Number of Roles:", str(len(user.roles[1:])), True], ["Roles:", reversed(roles), False]
             ]
         )

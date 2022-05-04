@@ -1,5 +1,5 @@
-from discord import Interaction, Webhook, TextChannel, HTTPException
-from discord.app_commands import describe, Group
+import discord
+from discord import app_commands
 #Discord Imports
 
 import datetime
@@ -11,15 +11,15 @@ from utils.helpers import FutureTime
 
 class Slowmode(ExultCog):
 
-    slowmode = Group(name="slowmode", description="Enable or Disable Slowmode.")
+    slowmode = app_commands.Group(name="slowmode", description="Enable or Disable Slowmode.")
 
     @slowmode.command(name="on", description="Enable slowmode for a given channel.")
-    @describe(duration="How long you want the slowmode to last (Max 6 hours).",
+    @app_commands.describe(duration="How long you want the slowmode to last (Max 6 hours).",
               channel="The channel you want to activate slowmode in.")
     @guild_staff(manage_channels=True)
-    async def slowmode_on_slash(self, itr: Interaction, duration: str, channel: TextChannel=None):
+    async def slowmode_on_slash(self, itr: discord.Interaction, duration: str, channel: discord.TextChannel=None):
         await itr.response.defer()
-        followup: Webhook = itr.followup
+        followup: discord.Webhook = itr.followup
         channel = itr.channel if not channel else channel
 
         x = FutureTime(duration).dt
@@ -28,7 +28,7 @@ class Slowmode(ExultCog):
 
         try:
             await channel.edit(slowmode_delay=seconds)
-        except HTTPException:
+        except discord.HTTPException:
             embed = embed_builder(title="Duration given exceeds maximum limit. (6 hours)")
             return await followup.send(embed=embed)
 
@@ -36,11 +36,11 @@ class Slowmode(ExultCog):
         await followup.send(embed=embed)
 
     @slowmode.command(name="off", description="Disable slowmode for a given channel.")
-    @describe(channel="The channel you want to activate slowmode in.")
+    @app_commands.describe(channel="The channel you want to activate slowmode in.")
     @guild_staff(manage_channels=True)
-    async def slowmode_off_slash(self, itr: Interaction, channel: TextChannel=None):
+    async def slowmode_off_slash(self, itr: discord.Interaction, channel: discord.TextChannel=None):
         await itr.response.defer()
-        followup: Webhook = itr.followup
+        followup: discord.Webhook = itr.followup
         channel = itr.channel if not channel else channel
 
         if not channel.slowmode_delay:

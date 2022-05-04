@@ -1,15 +1,15 @@
-from discord import Guild, AuditLogAction
-from discord.ext.commands import Cog
+import discord
+from discord.ext import commands
 
 from utils import *
 
 class GuildJoin(ExultCog):
 
-    @Cog.listener(name="on_guild_join")
-    async def add_guild(self, guild: Guild):
+    @commands.Cog.listener(name="on_guild_join")
+    async def add_guild(self, guild: discord.Guild):
         await GuildsDB(self.bot).add_guild(guild.id)
 
-        async for log in guild.audit_logs(limit=1, action=AuditLogAction.bot_add):
+        async for log in guild.audit_logs(limit=1, action=discord.AuditLogAction.bot_add):
             added_by = log.user
         users = len([user for user in guild.members if not user.bot])
         bots = len([user for user in guild.members if user.bot])
