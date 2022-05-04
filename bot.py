@@ -1,3 +1,4 @@
+from re import U
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -5,6 +6,7 @@ from discord.ext import commands
 # Discord Imports
 
 import aiohttp
+import asyncio
 import asyncpg
 import collections
 import datetime
@@ -12,7 +14,8 @@ import logging
 import pytz
 import sys
 import waifuim
-from typing import Optional, Set, Union
+from contextlib import asynccontextmanager
+from typing import Any, Optional, Set, Union
 
 # Regular Imports
 
@@ -33,6 +36,7 @@ class ExultBot(commands.AutoShardedBot):
         self.app_guilds = [912148314223415316]
         self.pool: asyncpg.Pool = pool
         self.session: aiohttp.ClientSession = session
+        self.lock = asyncio.Lock()
         self.wf: waifuim.WaifuAioClient = waifuim.WaifuAioClient(
             session=self.session, appname="Exult"
         )
@@ -296,3 +300,15 @@ class ExultBot(commands.AutoShardedBot):
     @staticmethod
     def time(time: datetime):
         return pytz.utc.localize(time)
+
+    @asynccontextmanager
+    async def request(self, method: str, url: str, **kwargs: Any):
+        """A context manager that wil make a request to the given URL."""
+        await self.lock.acquire()
+
+        response = await self.session.request(method, url, **kwargs)
+        try:
+            yield response
+        finally:
+            response.close()
+            self.lock.release()
