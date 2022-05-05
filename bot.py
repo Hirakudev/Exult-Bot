@@ -33,7 +33,7 @@ class ExultBot(commands.AutoShardedBot):
         self.startup_time: Optional[datetime.timedelta] = None
         self.start_time = discord.utils.utcnow()
         self.logger = logging.getLogger(__name__)
-        self.app_guilds = [912148314223415316]
+        self.app_guilds = [912148314223415316, 957469645089157120]
         self.pool: asyncpg.Pool = pool
         self.session: aiohttp.ClientSession = session
         self.lock = asyncio.Lock()
@@ -82,6 +82,7 @@ class ExultBot(commands.AutoShardedBot):
             "cogs.bot_events",
             "cogs.miscellaneous",
             "cogs.levelling",
+            "cogs.utility",
         ]
         for ext in exts:
             await self.load_extension(ext)
