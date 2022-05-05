@@ -14,7 +14,7 @@ from utils import *
 
 
 class Levelling(
-    LevellingCommands
+    LevellingCommands, LevellingConfig
 ):  # Not inheriting LevellingConfig due to it being a GroupCog
     """Levelling Cog"""
 
@@ -22,7 +22,4 @@ class Levelling(
 async def setup(bot: ExultBot):
     await bot.add_cog(
         Levelling(bot), guilds=[discord.Object(guild) for guild in bot.app_guilds]
-    )
-    await bot.add_cog(
-        LevellingConfig(bot), guilds=[discord.Object(guild) for guild in bot.app_guilds]
     )

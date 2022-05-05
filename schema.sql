@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS levelling_config (
         -- defaults to true because you'd need to
         -- insert when enabling it, wont be enabled
         -- by default though.
-    levelup_messages TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[]
+    levelup_message TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[]
 );
 
 CREATE TABLE IF NOT EXISTS levelling_rewards (

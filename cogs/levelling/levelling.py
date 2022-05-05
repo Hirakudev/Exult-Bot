@@ -51,7 +51,6 @@ class LevellingCommands(commands.Cog):
         buffer = await RankCard(bot).make_image(
             member, {"xp": xp, "required_xp": required_xp, "rank": rank, "level": level}
         )
-
         await followup.send(file=discord.File(fp=buffer, filename="rank.png"))
 
     @app_commands.command(
