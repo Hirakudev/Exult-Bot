@@ -6,30 +6,37 @@ from bot import ExultBot
 from utils import *
 
 
-class LevellingConfig(commands.GroupCog, group_name="levelling"):
+class LevellingConfig(ExultCog):
     """Levelling Config Commands"""
 
-    def __init__(self, bot: ExultBot):
-        self.bot = bot
+    levelling_group = app_commands.Group(
+        name="levelling", description="Configure the levelling feature"
+    )
 
     announce_channel = app_commands.Group(
         name="announce_channel",
         description="Configure where level-up announcements are made!",
+        parent=levelling_group,
     )
     blacklisted_roles = app_commands.Group(
         name="blacklisted_roles",
         description="Configure the blacklisted roles for levelling!",
+        parent=levelling_group,
     )
     blacklisted_channels = app_commands.Group(
         name="blacklisted_channels",
         description="Configure the blacklisted channels for levelling!",
+        parent=levelling_group,
     )
     custom_message = app_commands.Group(
         name="custom_message",
         description="Configure the level-up announcement message!",
+        parent=levelling_group,
     )
     custom_rewards = app_commands.Group(
-        name="custom_rewards", description="Configure custom rewards for levelling!"
+        name="custom_rewards",
+        description="Configure custom rewards for levelling!",
+        parent=levelling_group,
     )
 
     @announce_channel.command(
