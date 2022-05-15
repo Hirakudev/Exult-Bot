@@ -12,6 +12,14 @@ class LogsConfig(commands.Cog):
     def __init__(self, bot: ExultBot):
         self.bot = bot
         self.db = LogsDB(bot)
+        self.log_types = [
+            "join_logs",
+            "member_logs",
+            "message_logs",
+            "moderation_logs",
+            "guild_logs",
+            "voice_logs",
+        ]
 
     logs_group = app_commands.Group(
         name="logs", description="Configure the Logging feature!"
