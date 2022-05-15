@@ -11,6 +11,7 @@ import asyncpg
 import collections
 import datetime
 import logging
+import os
 import pytz
 import sys
 import waifuim
@@ -38,7 +39,7 @@ class ExultBot(commands.AutoShardedBot):
         self.session: aiohttp.ClientSession = session
         self.lock = asyncio.Lock()
         self.wf: waifuim.WaifuAioClient = waifuim.WaifuAioClient(
-            session=self.session, appname="Exult"
+            session=self.session, appname="Exult", token=os.getenv("WAIFU_TOKEN")
         )
         super().__init__(
             command_prefix="t!",

@@ -5,6 +5,7 @@ import discord
 from .wtp import WTP
 from .basic import Basic
 from .weather import Weather
+from .waifu import Waifu
 
 # Cog Imports
 
@@ -14,7 +15,7 @@ from utils import *
 # Local Imports
 
 
-class Fun(WTP, Basic, Weather):
+class Fun(WTP, Basic, Weather, Waifu):
     """Fun Cog"""
 
 
