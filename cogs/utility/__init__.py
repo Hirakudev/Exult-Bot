@@ -3,6 +3,7 @@ import discord
 # Discord Imports
 
 from .emoji import Emojis
+from .role import Role
 
 # Cog Imports
 
@@ -12,7 +13,7 @@ from utils import *
 # Local Imports
 
 
-class Utility(Emojis):
+class Utility(Emojis, Role):
     """Utility Cog"""
 
 
