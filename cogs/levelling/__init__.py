@@ -13,9 +13,7 @@ from utils import *
 # Local Imports
 
 
-class Levelling(
-    LevellingCommands, LevellingConfig
-):  # Not inheriting LevellingConfig due to it being a GroupCog
+class Levelling(LevellingCommands, LevellingConfig):
     """Levelling Cog"""
 
 
