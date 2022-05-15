@@ -66,6 +66,7 @@ class ExultBot(commands.AutoShardedBot):
         self.exult_guild = None
         self.bot_logs = None
         self.dev_role = None
+        self.owner_id = 957437570546012240
 
     red = 0xFB5F5F
     green = 0x2ECC71
@@ -84,6 +85,7 @@ class ExultBot(commands.AutoShardedBot):
             "cogs.miscellaneous",
             "cogs.levelling",
             "cogs.utility",
+            "cogs.admin",
         ]
         for ext in exts:
             await self.load_extension(ext)

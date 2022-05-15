@@ -4,7 +4,7 @@ from .image_gen import RankCard, WelcomeCard
 
 # Directories
 
-from .helpers import embed_builder, time_handler, get_perms, emojis
+from .helpers import embed_builder, time_handler, get_perms, emojis, TabularData, plural
 from .checks import guild_staff, moderation
 from .cog import ExultCog
 

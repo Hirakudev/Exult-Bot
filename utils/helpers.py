@@ -1,9 +1,39 @@
+"""
+The MIT License (MIT)
+
+Copyright (c) 2015 Rapptz
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+Snippets used from RoboDanny in 
+lines 103 - 185 https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/time.py
+lines 200-264 https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/formats.py
+lines 267-274 https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py
+"""
+
+
 import discord
 from discord.ext import commands
 
 # Discord Imports
 
-from typing import Union
+from typing import Union, Iterable, Any
 import re
 from dateutil.relativedelta import relativedelta
 import parsedatetime as pdt
@@ -38,7 +68,7 @@ def embed_builder(
     thumbnail: str = None,
     image: str = None,
     fields: list = None,
-    url: str = None
+    url: str = None,
 ):
     embed = discord.Embed()
     if title:
@@ -167,6 +197,81 @@ def time_handler(time) -> datetime.datetime:
             "Make sure you format your duration correctly! `(e.g. 5 hours 30 minutes)`"
         )
     return localised
+
+
+class plural:
+    def __init__(self, value: int):
+        self.value = value
+
+    def __format__(self, format_spec: str) -> str:
+        v = self.value
+        singular, sep, plural = format_spec.partition("|")
+        plural = plural or f"{singular}s"
+        if abs(v) != 1:
+            return f"{v} {plural}"
+        return f"{v} {singular}"
+
+
+class TabularData:
+    def __init__(self):
+        self._widths: list[int] = []
+        self._columns: list[str] = []
+        self._rows: list[list[str]] = []
+
+    def set_columns(self, columns: list[str]):
+        self._columns = columns
+        self._widths = [len(c) + 2 for c in columns]
+
+    def add_row(self, row: Iterable[Any]) -> None:
+        rows = [str(r) for r in row]
+        self._rows.append(rows)
+        for index, element in enumerate(rows):
+            width = len(element) + 2
+            if width > self._widths[index]:
+                self._widths[index] = width
+
+    def add_rows(self, rows: Iterable[Iterable[Any]]) -> None:
+        for row in rows:
+            self.add_row(row)
+
+    def render(self) -> str:
+        """Renders a table in rST format.
+        Example:
+        +-------+-----+
+        | Name  | Age |
+        +-------+-----+
+        | Alice | 24  |
+        |  Bob  | 19  |
+        +-------+-----+
+        """
+
+        sep = "+".join("-" * w for w in self._widths)
+        sep = f"+{sep}+"
+
+        to_draw = [sep]
+
+        def get_entry(d):
+            elem = "|".join(f"{e:^{self._widths[i]}}" for i, e in enumerate(d))
+            return f"|{elem}|"
+
+        to_draw.append(get_entry(self._columns))
+        to_draw.append(sep)
+
+        for row in self._rows:
+            to_draw.append(get_entry(row))
+
+        to_draw.append(sep)
+        return "\n".join(to_draw)
+
+
+def cleanup_code(content: str) -> str:
+    """Automatically removes code blocks from the code."""
+    # remove ```py\n```
+    if content.startswith("```") and content.endswith("```"):
+        return "\n".join(content.split("\n")[1:-1])
+
+    # remove `foo`
+    return content.strip("` \n")
 
 
 def get_perms(permissions: discord.Permissions):
