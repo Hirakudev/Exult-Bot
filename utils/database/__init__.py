@@ -5,3 +5,4 @@ from ._core import CoreDB
 from .logs import LogsDB
 from .guilds import GuildsDB
 from .levelling import LevellingDB
+from .welcome import WelcomeDB

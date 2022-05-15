@@ -1,6 +1,6 @@
 from .views import *
 from .database import *
-from .image_gen import RankCard
+from .image_gen import RankCard, WelcomeCard
 
 # Directories
 
