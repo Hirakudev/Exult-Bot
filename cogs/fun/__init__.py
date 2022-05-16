@@ -2,6 +2,10 @@ import discord
 
 # Discord Imports
 
+import os
+
+# Regular Imports
+
 from .wtp import WTP
 from .basic import Basic
 from .weather import Weather
@@ -17,6 +21,8 @@ from utils import *
 
 class Fun(WTP, Basic, Weather, Waifu):
     """Fun Cog"""
+
+    dagpi_token = os.environ["DAGPI_TOKEN"]
 
 
 async def setup(bot: ExultBot):

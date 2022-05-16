@@ -9,7 +9,6 @@ import random
 
 from bot import ExultBot
 from utils import *
-from ._fun_helper import FunHelper
 
 # Local Imports
 
@@ -23,7 +22,7 @@ class Basic(ExultCog):
 
         async with bot.session.get(
             "https://api.dagpi.xyz/data/roast",
-            headers={"Authorization": FunHelper.dagpi_token},
+            headers={"Authorization": self.dagpi_token},
         ) as data:
             data = await data.json()
 
@@ -38,7 +37,7 @@ class Basic(ExultCog):
 
         async with bot.session.get(
             "https://api.dagpi.xyz/data/joke",
-            headers={"Authorization": FunHelper.dagpi_token},
+            headers={"Authorization": self.dagpi_token},
         ) as data:
             data = await data.json()
 
@@ -53,7 +52,7 @@ class Basic(ExultCog):
 
         async with bot.session.get(
             "https://api.dagpi.xyz/data/fact",
-            headers={"Authorization": FunHelper.dagpi_token},
+            headers={"Authorization": self.dagpi_token},
         ) as data:
             data = await data.json()
 
@@ -70,7 +69,7 @@ class Basic(ExultCog):
 
         async with bot.session.get(
             "https://api.dagpi.xyz/data/pickupline",
-            headers={"Authorization": FunHelper.dagpi_token},
+            headers={"Authorization": self.dagpi_token},
         ) as data:
             data = await data.json()
 
@@ -85,7 +84,7 @@ class Basic(ExultCog):
 
         async with bot.session.get(
             "https://api.dagpi.xyz/data/8ball",
-            headers={"Authorization": FunHelper.dagpi_token},
+            headers={"Authorization": self.dagpi_token},
         ) as data:
             data = await data.json()
 
@@ -102,7 +101,7 @@ class Basic(ExultCog):
 
         async with bot.session.get(
             "https://api.dagpi.xyz/data/yomama",
-            headers={"Authorization": FunHelper.dagpi_token},
+            headers={"Authorization": self.dagpi_token},
         ) as data:
             data = await data.json()
 
@@ -115,34 +114,12 @@ class Basic(ExultCog):
         bot: ExultBot = itr.client
         followup: discord.Webhook = itr.followup
 
-        subreddit = random.choice("memes", "dankmemes")
+        subreddit = random.choice(("memes", "dankmemes"))
         async with bot.session.get(
             f"https://reddit.com/r/{subreddit}/random.json"
         ) as data:
             data = await data.json()
-            post = data[0]["data"]["children"]["0"]["data"]
+            post = data[0]["data"]["children"][0]["data"]
 
-        embed = embed_builder(
-            title=[post["title"]], image=post["url_overridden_by_dest"]
-        )
-        await followup.send(embed=embed)
-
-    @app_commands.command(name="animal", description="Get a random animal!")
-    async def animal_slash(self, itr: discord.Interaction):
-        await itr.response.defer()
-        bot: ExultBot = itr.client
-        followup: discord.Webhook = itr.followup
-
-        soup = await FunHelper(bot).convertSoup(
-            "https://www.bestrandoms.com/random-animal-generator"
-        )
-        animals = soup.findAll(class_="text-center")
-        image = "https://www.bestrandoms.com" + animals[2].find("img")["src"]
-        name = animals[2].find("img")["alt"].replace("logo", "")
-        phrases = [f"The {name}", f"A fine looking {name}", f"A very lovely {name}"]
-        desc = animals[4].text
-
-        embed = embed_builder(
-            title=random.choice(phrases).replace("  ", " "), footer=desc, image=image
-        )
+        embed = embed_builder(title=post["title"], image=post["url_overridden_by_dest"])
         await followup.send(embed=embed)

@@ -5,7 +5,6 @@ from discord import app_commands
 
 from bot import ExultBot
 from utils import *
-from ._fun_helper import FunHelper
 
 # Local Imports
 
@@ -19,7 +18,7 @@ class WTP(ExultCog):
 
         async with bot.session.get(
             "https://api.dagpi.xyz/data/wtp",
-            headers={"Authorization": FunHelper.dagpi_token},
+            headers={"Authorization": self.dagpi_token},
         ) as data:
             data = await data.json()
 
