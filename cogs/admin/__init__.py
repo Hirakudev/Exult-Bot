@@ -3,6 +3,7 @@ import discord
 # Discord Imports
 
 from .eval import Eval
+from .sync import Sync
 
 # Cog Imports
 
@@ -12,7 +13,7 @@ from utils import *
 # Local Imports
 
 
-class Admin(Eval):
+class Admin(Eval, Sync):
     """Admin Cog"""
 
 
