@@ -5,12 +5,12 @@ from discord import Member
 from easy_pil import Editor, Canvas, Font
 from humanize.number import ordinal
 
-from utils import CoreBot
+from bot import ExultBot
 
 
 class WelcomeCard:
     def __init__(self, bot):
-        self.bot: CoreBot = bot
+        self.bot: ExultBot = bot
 
     async def make_image(self, member: Member):
 
