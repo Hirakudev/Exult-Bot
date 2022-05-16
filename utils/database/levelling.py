@@ -141,7 +141,7 @@ class LevellingDB(CoreDB):
                     f"SELECT blacklisted_{get} FROM levelling_config WHERE guild_id=$1",
                     guild_id,
                 )
-                if len(blacklist):
+                if blacklist:
                     return blacklist
         return False
 

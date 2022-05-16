@@ -1,3 +1,4 @@
+import functools
 from re import U
 import discord
 from discord import app_commands
@@ -15,10 +16,16 @@ import os
 import pytz
 import sys
 import waifuim
+from concurrent import futures
 from contextlib import asynccontextmanager
-from typing import Any, Optional, Set, Union
+from typing import Any, Awaitable, Optional, Set, TypeVar, Union, Callable
+from typing_extensions import ParamSpec
 
 # Regular Imports
+
+T = TypeVar("T")
+EB = TypeVar("EB", bound="ExultBot")
+P = ParamSpec("P")
 
 
 class ExultBot(commands.AutoShardedBot):
@@ -38,6 +45,7 @@ class ExultBot(commands.AutoShardedBot):
         self.pool: asyncpg.Pool = pool
         self.session: aiohttp.ClientSession = session
         self.lock = asyncio.Lock()
+        self.thread_pool = futures.ThreadPoolExecutor(max_workers=10)
         self.wf: waifuim.WaifuAioClient = waifuim.WaifuAioClient(
             session=self.session, appname="Exult", token=os.getenv("WAIFU_TOKEN")
         )
@@ -196,22 +204,6 @@ class ExultBot(commands.AutoShardedBot):
             )
             print(msg)
 
-    async def on_message(self, message: discord.Message):
-        if isinstance(message.channel, discord.DMChannel) and await self.is_owner(
-            message.author
-        ):
-            if message.content.lower() == "sync":
-                commands, guilds = 0, 0
-                for guild in self.app_guilds:
-                    g = discord.Object(guild)
-                    x = await self.tree.sync(guild=g)
-                    commands += len(x)
-                    guilds += 1
-                await message.reply(
-                    f"Synced {commands} commands across {guilds} guilds."
-                )
-        await self.process_commands(message)
-
     async def on_error(self, event: str, *args, **kwargs):
         error_type, error, traceback_object = sys.exc_info()
         if not error:
@@ -223,7 +215,7 @@ class ExultBot(commands.AutoShardedBot):
             colour=self.red,
             timestamp=discord.utils.utcnow(),
         )
-        await self.get_channel(961776237490094150).send(embed=embed)
+        await self.get_channel(933494408203100170).send(embed=embed)
         return await super().on_error(event, *args, **kwargs)
 
     async def on_tree_error(
@@ -273,6 +265,14 @@ class ExultBot(commands.AutoShardedBot):
             self.logger.info("HTTP Session Closed.")
         finally:
             await super().close()
+
+    def wrap(
+        self, func: Callable[P, T], *args: P.args, **kwargs: P.kwargs
+    ) -> Awaitable[T]:
+        loop = asyncio.get_event_loop()
+        return loop.run_in_executor(
+            self.thread_pool, functools.partial(func, *args, **kwargs)
+        )
 
     async def get_or_fetch_user(self, user: discord.User):
         try:

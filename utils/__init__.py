@@ -6,6 +6,13 @@ from .image_gen import RankCard, WelcomeCard
 
 from .helpers import embed_builder, time_handler, get_perms, emojis, TabularData, plural
 from .checks import guild_staff, moderation
-from .cog import ExultCog
+from .subclasses import ExultCog, Interaction, KnownInteraction
+from .transformers import (
+    AdaptiveTransformerProxy,
+    ProxyTransformer,
+    RoleChannelTransformer,
+    CategoryChannelTransformer,
+    NotBotRoleTransformer,
+)
 
 # Files
