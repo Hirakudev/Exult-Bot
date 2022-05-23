@@ -3,7 +3,7 @@ import discord
 # Discord Imports
 
 from .customcommands import CustomCommands
-from .emoji import Emojis
+from .emojis import Emojis
 from .role import Role
 
 # Cog Imports
