@@ -12,14 +12,15 @@ class LogsConfig(commands.Cog):
     def __init__(self, bot: ExultBot):
         self.bot = bot
         self.db = LogsDB(bot)
-        self.log_types = [
-            "join_logs",
-            "member_logs",
-            "message_logs",
-            "moderation_logs",
-            "guild_logs",
-            "voice_logs",
-        ]
+
+    log_types = [
+        "guild_logs",
+        "join_logs",
+        "member_logs",
+        "message_logs",
+        "moderation_logs",
+        "voice_logs",
+    ]
 
     logs_group = app_commands.Group(
         name="logs", description="Configure the Logging feature!"
@@ -62,12 +63,12 @@ class LogsConfig(commands.Cog):
             embed = embed_builder(description="Please provide a valid text channel!")
             return await followup.send(embed=embed)
         is_updated = await self.db.set_log(
-            guild_id=itr.guild.id,
-            log=log,
-            channel_id=channel.id if isinstance(channel, discord.TextChannel) else None,
+            itr.guild.id,
+            log,
+            channel.id if isinstance(channel, discord.TextChannel) else None,
         )
         if not is_updated:
-            if channel:
+            if isinstance(channel, discord.TextChannel):
                 embed = embed_builder(
                     description=f"`{log.replace('_', ' ').replace('guild', 'server').title()}` are already sent to {channel.mention}!"
                 )
@@ -76,7 +77,7 @@ class LogsConfig(commands.Cog):
                     description=f"`{log.replace('_', ' ').replace('guild', 'server').title()}` is already disabled!"
                 )
         else:
-            if channel:
+            if isinstance(channel, discord.TextChannel):
                 embed = embed_builder(
                     description=f"`{log.replace('_', ' ').replace('guild', 'server').title()}` will now be sent to {channel.mention}!"
                 )
@@ -107,4 +108,4 @@ class LogsConfig(commands.Cog):
             app_commands.Choice(name=f"Disable {log_type}", value="disable"),
             app_commands.Choice(name="Create a channel for me", value="create"),
         ] + [app_commands.Choice(name=f"#{c.name}", value=str(c.id)) for c in channels]
-        return choices
+        return [c for c in choices if current in c.name]
