@@ -1,23 +1,9 @@
-from __future__ import annotations
-
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-import asyncio
-from fuzzywuzzy import process  # type: ignore
-from concurrent import futures
 import functools
-from typing import (
-    Union,
-    List,
-    TypeVar,
-    Any,
-    Callable,
-    Awaitable,
-    Generic,
-)
-from typing_extensions import ParamSpec
+from typing import Union
 
 from bot import ExultBot
 from utils import *
@@ -96,7 +82,7 @@ class LevellingConfig(commands.Cog):
                 content="Set the custom level-up message to the default!"
             )
         else:
-            await self.ldb.set_custom_message(guild_id=itr.guild.id, message=message)
+            await self.db.set_message(itr.guild.id, message)
 
         fmt = f"Level-up announcement message has been set to: ```\n{message}```"
         if not mentioned_user:
@@ -118,14 +104,12 @@ class LevellingConfig(commands.Cog):
     ) -> discord.InteractionMessage:
         await itr.response.defer()
 
-        if isinstance(item, discord.Role):
-            result = functools.partial(self.db.add_blacklisted_role, role_id=item.id)
+        if isinstance(item, (discord.Role, discord.TextChannel)):
+            is_added = await self.db.blacklist_add(itr.guild.id, item.id)
         else:
-            result = functools.partial(
-                self.db.add_blacklisted_channel, channel_id=item.id
+            return await itr.edit_original_message(
+                content=f"That is not a valid Role or Text Channel!"
             )
-
-        is_added = await result(guild_id=itr.guild.id)
 
         fmt = (
             f"{item.mention} is now blacklisted from levelling!"
@@ -149,18 +133,17 @@ class LevellingConfig(commands.Cog):
     ) -> discord.InteractionMessage:
         await itr.response.defer()
 
-        if isinstance(item, discord.Role):
-            result = functools.partial(self.db.remove_blacklisted_role, role_id=item.id)
+        if isinstance(item, (discord.Role, discord.TextChannel)):
+            is_added = await self.db.blacklsit_remove(itr.guild.id, item.id)
         else:
-            result = functools.partial(
-                self.db.remove_blacklisted_channel, channel_id=item.id
+            return await itr.edit_original_message(
+                content=f"That is not a valid Role or Text Channel!"
             )
 
-        is_removed = await result(guild_id=itr.guild.id)
         fmt = (
-            f"{item.mention} is not blacklisted from levelling!"
-            if not is_removed
-            else f"{item.mention} is no longer blacklisted from levelling!"
+            f"{item.mention} is no longer blacklisted from levelling!"
+            if is_added
+            else f"{item.mention} is not blacklisted!"
         )
         return await itr.edit_original_message(content=fmt)
 
@@ -182,9 +165,7 @@ class LevellingConfig(commands.Cog):
                 content="You cannot assign a bot role as a role reward!"
             )
 
-        is_added = await self.db.add_reward(
-            guild_id=itr.guild.id, level=level, role_id=role.id
-        )
+        is_added = await self.db.add_reward(itr.guild.id, level, role.id)
         fmt = (
             f"{role.mention} will now be given to members when they reach `LEVEL {level}`!"
             if is_added
@@ -202,7 +183,7 @@ class LevellingConfig(commands.Cog):
     ) -> discord.InteractionMessage:
         await itr.response.defer()
 
-        is_removed = await self.db.remove_reward(guild_id=itr.guild.id, role_id=role.id)
+        is_removed = await self.db.remove_reward(itr.guild.id, role.id)
         fmt = (
             f"{role.mention} has been removed as a role reward!"
             if is_removed

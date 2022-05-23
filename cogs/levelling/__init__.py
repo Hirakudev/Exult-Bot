@@ -2,7 +2,7 @@ import discord
 
 # Discord Imports
 
-from .levelling import LevellingCommands
+from .leveller import LevellingCommands
 from .config import LevellingConfig
 
 # Cog Imports

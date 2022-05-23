@@ -2,6 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from typing import List
+
 from bot import ExultBot
 from .client import LevellingClient
 from utils import *
@@ -11,16 +13,36 @@ class LevellingCommands(commands.Cog):
     def __init__(self, bot: ExultBot):
         self.bot: ExultBot = bot
         self.client = LevellingClient(bot)
-        self.db = LevellingDB(bot)
+        self.db = self.client.db
         self.cd_mapping = commands.CooldownMapping.from_cooldown(
             1, 60, commands.BucketType.member
         )
 
+    async def get_leaderboard(self, guild_id: int) -> List[dict]:
+        users = await self.db.get_users(guild_id)
+        if not users:
+            return "No users in this server have gained any xp yet!"
+        leaderboard = sorted(
+            users, key=lambda t: (t.get("level"), t.get("xp")), reverse=True
+        )
+        return leaderboard
+
     @commands.Cog.listener(name="on_message")
     async def levelling_on_message(self, message: discord.Message):
-        if all((not message.author.bot, message.guild)):
+        if all(
+            (not message.author.bot, message.guild, message.guild.id != self.bot._guild)
+        ):
             retry_after = self.cd_mapping.update_rate_limit(message)
             if not retry_after:
+                config = await self.db.get_config(message.guild.id)
+                if message.channel.id in config.get("blacklisted_channels"):
+                    print("b channel")
+                    return
+                for role in message.author.roles:
+                    if role.id in config.get("blacklisted_roles"):
+                        print("b role")
+                        return
+                print("levelling up")
                 await self.client.add_xp(message.author, message)
 
     @app_commands.command(
@@ -44,9 +66,10 @@ class LevellingCommands(commands.Cog):
         xp = user.get("xp")
         level = user.get("level")
         required_xp = self.client.formula(level)
-        all_users = await self.db.leaderboard(itr.guild.id)
+        all_users = await self.db.get_users(itr.guild.id)
 
-        rank = all_users.index({"user_id": member.id, "xp": xp, "level": level}) + 1
+        profile = [u for u in all_users if u.get("user_id") == itr.user.id]
+        rank = all_users.index(profile[0]) + 1
 
         buffer = await RankCard(bot).make_image(
             member, {"xp": xp, "required_xp": required_xp, "rank": rank, "level": level}
@@ -62,7 +85,9 @@ class LevellingCommands(commands.Cog):
         bot: ExultBot = itr.client
         followup: discord.Webhook = itr.followup
 
-        leaderboard = await self.db.leaderboard(itr.guild.id)
+        leaderboard = await self.get_leaderboard(itr.guild.id)
+        if isinstance(leaderboard, str):
+            return await followup.send(leaderboard)
         top_10 = []
         for i in range(0, 10):
             try:

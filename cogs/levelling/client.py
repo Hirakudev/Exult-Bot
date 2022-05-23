@@ -15,6 +15,7 @@ from utils import *
 class LevellingClient:
     def __init__(self, bot: ExultBot):
         self.bot: ExultBot = bot
+        self.db = LevellingDB(self.bot)
 
     XP_PER_MESSAGE = 15
     MULTIPLIER = 1
@@ -30,48 +31,50 @@ class LevellingClient:
             * 100
         )
 
-    async def add_xp(self, user: discord.Member, message: discord.Message):
-        xp = self.XP_PER_MESSAGE * self.MULTIPLIER
-        user_xp = await LevellingDB(self.bot).add_xp(
-            guild_id=user.guild.id, user_id=user.id, xp=xp
-        )
-        if not user_xp:
-            return
+    def get_msg(self, user, level):
+        return f"{user.mention} just levelled up to level {level}!"
 
-        level = user_xp.get("level")
-        xp = user_xp.get("xp")
+    async def level_up(self, user: discord.Member, message: discord.Message):
+        config = await self.db.get_config(user.guild.id)
+        rewards = await self.db.get_rewards(user.guild.id)
+        profile = await self.db.add_level(user.guild.id, user.id)
+        msg = "there's no msg lol"
+        if rewards:
+            _roles_added = []
+            for reward in rewards:
+                if profile.get("level") == reward.get("level"):
+                    role = user.guild.get_role(reward.get("role"))
+                    _roles_added.append(role)
 
-        def get_msg(user, level):
-            return f"{user.mention} just levelled up to level {level}!"
-
-        role = None
-
-        if all((level != 0, xp >= self.formula(level))):
-            user_xp = await LevellingDB(self.bot).level_up(
-                guild_id=user.guild.id, user_id=user.id
-            )
-            rewards = await LevellingDB(self.bot).get_rewards(guild_id=message.guild.id)
-            for key, value in rewards.items():
-                if user_xp.get("level") == key:
-                    role = message.guild.get_role(value)
-                    break
-
-            msg = await LevellingDB(self.bot).get_custom_message(guild_id=user.guild.id)
+            msg = config.get("levelup_message")
             if msg:
                 msg = msg.replace("{user}", user.mention).replace(
-                    "{level}", user_xp.get("level")
+                    "{level}", str(profile.get("level"))
                 )
-            if role:
-                await message.author.add_roles(role)
-                msg = f"{user.mention} just levelled up to level {user_xp.get('level')} and has been rewarded with the `{role.name}` role!"
-            if not msg:
-                msg = get_msg(user, user_xp.get("level"))
+            if _roles_added:
+                roles_added = []
+                for role in _roles_added:
+                    try:
+                        await user.add_roles(role)
+                        roles_added.append(role)
+                    except discord.Forbidden:
+                        pass
+        else:
+            msg = self.get_msg(user, profile.get("level"))
 
-            channel_id = await LevellingDB(self.bot).get_custom_channel(
-                guild_id=user.guild.id
-            )
-            channel = user.guild.get_channel(channel_id)
-            if not channel:
-                channel = message.channel
+        channel_id = config.get("announce_channel")
+        channel = user.guild.get_channel(channel_id)
+        if not channel:
+            channel = message.channel
 
-            await channel.send(msg)
+        await channel.send(msg)
+
+    async def add_xp(self, user: discord.Member, message: discord.Message):
+        xp = self.XP_PER_MESSAGE * self.MULTIPLIER
+        profile = await self.db.add_xp(user.guild.id, user.id, xp)
+
+        level = profile.get("level")
+        xp = profile.get("xp")
+
+        if all((level != 0, xp >= self.formula(level))):
+            await self.level_up(user, message)
