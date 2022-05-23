@@ -38,10 +38,13 @@ import re
 from dateutil.relativedelta import relativedelta
 import parsedatetime as pdt
 import datetime
+import kimochi
+import humanize
 
 # Regular Imports
 
 from bot import ExultBot
+from .image_gen.emotion import Marriage
 
 # Local Imports
 
@@ -298,3 +301,58 @@ emojis = {
     "dmod": "<:DiscordCertifiedModerator:951945202963198062>  ",
     "bot": "<:VerifiedBot:951943457788813363>  ",
 }
+
+
+def create_command(guild: Union[discord.Guild, int], name: str, response: str):
+    guild_id = guild.id if isinstance(guild, discord.Guild) else guild
+    cmd = (
+        "import discord\n"
+        "from discord import app_commands\n"
+        f"@bot.tree.command(name='{name}')\n"
+        f"@app_commands.guilds({guild_id})\n"
+        f"async def cc_create(itr: discord.Interaction):\n"
+        f"    await itr.response.send_message('{response}')"
+    )
+    return cmd
+
+
+class Emotions:
+    def __init__(self, kimochi_client: kimochi.Client):
+        self.client = kimochi_client
+
+    def determine_action(self, action: str) -> str:
+        if action in ["hug", "slap", "poke", "pat", "cuddle", "lick"]:
+            return action + "s"
+        elif action in ["kiss", "punch"]:
+            return action + "es"
+        return action
+
+    async def action(self, *, count: int, action: str, person: discord.Member, target: Union[discord.Member, discord.User]):  # type: ignore
+        gif = (await self.client.get(action)).url
+        embed: discord.Embed = discord.Embed(color=0xFB5F5F)
+        action: str = self.determine_action(action)
+        embed.title = f"{person.display_name} {action} {target.display_name}!"
+        count = humanize.number.ordinal(count) if count != 0 else None
+        action = action.replace("s", "") if action in ("cuddles", "punches") else action
+        embed.description = f"This is your {count} {action}!" if count else None
+        embed.set_image(url=gif)
+        return embed
+
+    async def marry(
+        self,
+        itr: discord.Interaction,
+        *,
+        married: bool,
+        person: discord.Member,
+        target: Union[discord.Member, discord.User],
+    ) -> discord.Embed:
+        if married:
+            return "You are already married! Imagine cheating, you fucking idiot."
+        marry = Marriage(person, target, session=self.client.session)
+        file = discord.File(await marry.marry_pic(), filename="marry.png")
+        embed: discord.Embed = discord.Embed(
+            title=f"{person.display_name} is now married to {target.display_name}!",
+            color=0xFB5F5F,
+        )
+        embed.set_image(url="attachment://marry.png")
+        return embed

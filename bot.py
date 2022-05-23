@@ -49,6 +49,7 @@ class ExultBot(commands.AutoShardedBot):
         self.wf: waifuim.WaifuAioClient = waifuim.WaifuAioClient(
             session=self.session, appname="Exult", token=os.getenv("WAIFU_TOKEN")
         )
+        self.kimochi_client = kwargs.get("kimochi_client")
         super().__init__(
             command_prefix="t!",
             description="An all-in-one bot to fit all your needs. Moderation, Fun, Utility and More!",
@@ -84,17 +85,7 @@ class ExultBot(commands.AutoShardedBot):
     )
 
     async def setup_hook(self):
-        exts = [
-            "jishaku",
-            "cogs.moderation",
-            "cogs.fun",
-            "cogs.guild_config",
-            "cogs.bot_events",
-            "cogs.miscellaneous",
-            "cogs.levelling",
-            "cogs.utility",
-            "cogs.admin",
-        ]
+        exts = ["jishaku", "cogs.fun", "cogs.admin"]
         for ext in exts:
             await self.load_extension(ext)
         await self.populate_cache()
