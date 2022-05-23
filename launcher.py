@@ -3,6 +3,7 @@ import os
 import aiohttp
 import asyncpg
 import asyncio
+import kimochi
 
 # Regular Imports
 
@@ -18,7 +19,10 @@ async def main():
     async with aiohttp.ClientSession() as session, asyncpg.create_pool(
         os.environ["TEST_PSQL_URI"]
     ) as pool, pool.acquire() as listener_connection, ExultBot(
-        session=session, pool=pool, listener_connection=listener_connection
+        session=session,
+        pool=pool,
+        listener_connection=listener_connection,
+        kimochi_client=kimochi.Client(session),
     ) as bot:
         await bot.start(os.environ["TEST_TOKEN"])
 

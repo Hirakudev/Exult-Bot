@@ -1,17 +1,17 @@
 import discord
 from discord.ext import commands
 
-from bot import ExultBot
 from utils import *
 
 
 class Welcomer(commands.Cog):
-    def __init__(self, bot: ExultBot):
+    def __init__(self, bot):
         self.bot = bot
+        self.db = WelcomeDB(self.bot)
 
     @commands.Cog.listener("on_member_join")
     async def welcome_message(self, member: discord.Member):
-        config = await WelcomeDB(self.bot).get_config(guild_id=member.guild.id)
+        config = await self.db.get_config(member.guild.id)
         channel_id = config.get("channel_id")
         message: str = config.get("custom_message")
 
@@ -20,8 +20,9 @@ class Welcomer(commands.Cog):
         if not message:
             msg = f"Welcome {member.mention} to {member.guild.name}!"
         else:
-            if "{user}" in message:
+            if any(("{user}" in message, "{server}" in message)):
                 msg = message.replace("{user}", member.mention)
+                msg = msg.replace("{server}", member.guild.name)
             else:
                 msg = message
         channel = self.bot.get_channel(channel_id)

@@ -2,8 +2,12 @@ import discord
 
 # Discord Imports
 
-from .welcomer import Welcomer
+import os
+
+# Regular Imports
+
 from .config import WelcomeConfig
+from .welcomer import Welcomer
 
 # Cog Imports
 
