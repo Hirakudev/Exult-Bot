@@ -5,6 +5,8 @@ import io
 from PIL import Image, ImageDraw, ImageChops, ImageOps
 from typing import Optional, Union
 
+from bot import ExultBot
+
 
 class Marriage:
     def __init__(
@@ -21,7 +23,7 @@ class Marriage:
         self, thing: Union[discord.Member, discord.User]
     ) -> io.BytesIO:
         self.session = self.session if self.session else aiohttp.ClientSession()
-        resp = await self.session.get(thing.avatar.url)  # type: ignore
+        resp = await self.session.get(thing.display_avatar.url)  # type: ignore
         _resp = await resp.read()
         return io.BytesIO(_resp)
 
@@ -31,7 +33,7 @@ class Marriage:
             base = Image.new("RGBA", size=image.size, color=(0, 0, 0, 0))
             size_circle = (image.size[0] * 3, image.size[1] * 3)
             mask = (
-                Image.open(r"mask.png")
+                Image.open("utils/image_gen/mask.png")
                 .resize(size_circle, Image.ANTIALIAS)
                 .convert("L")
             )
@@ -44,8 +46,8 @@ class Marriage:
             return final
 
     async def marry_pic(self) -> io.BytesIO:
-        base = Image.open(r"Exult/base.png")
-        heart = Image.open(r"Exult/heart-1.png")
+        base = Image.open("utils/image_gen/base.png")
+        heart = Image.open("utils/image_gen/heart-1.png")
         person = await self.circle(self.person)
         target = await self.circle(self.target)
 
