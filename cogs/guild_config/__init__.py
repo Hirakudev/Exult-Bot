@@ -2,7 +2,7 @@ import discord
 
 # Discord Imports
 
-from .guild_staff import GuildStaff
+from .config import GuildConfig
 
 # Cog Imports
 
@@ -12,11 +12,9 @@ from utils import *
 # Local Imports
 
 
-class GuildConfig(GuildStaff):
+class Config(GuildConfig):
     """Guild Config Cog"""
 
 
 async def setup(bot: ExultBot):
-    await bot.add_cog(
-        GuildConfig(bot), guilds=[discord.Object(guild) for guild in bot.app_guilds]
-    )
+    await bot.add_cog(Config(bot))

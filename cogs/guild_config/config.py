@@ -11,10 +11,12 @@ from utils import *
 # Local Imports
 
 
-class GuildStaff(ExultCog):
+class GuildConfig(ExultCog):
 
     config = app_commands.Group(
-        name="config", description="Configure the bot to suit your server's needs!"
+        name="config",
+        description="Configure the bot to suit your server's needs!",
+        default_permissions=discord.Permissions(manage_guild=True),
     )
     modrole = app_commands.Group(
         name="modrole",
