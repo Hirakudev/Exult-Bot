@@ -12,9 +12,11 @@ class Counter(commands.Cog):
 
     @commands.Cog.listener(name="on_message")
     async def counting_message(self, msg: discord.Message):
-        if any((msg.author.bot, not msg.guild, msg.guild.id != self.bot._guild)):
+        if any((msg.author.bot, not msg.guild)):
             return
         config = await self.db.get_config(msg.guild)
+        if not config:
+            return
         channel_id = config.get("channel_id")
         if not channel_id or channel_id != msg.channel.id:
             return

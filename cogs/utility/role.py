@@ -19,7 +19,9 @@ from utils import *
 class Role(ExultCog):
 
     role = app_commands.Group(
-        name="role", description="Get information on a specific role."
+        name="role",
+        description="Get information on a specific role.",
+        default_permissions=discord.Permissions(manage_roles=True),
     )
     all_group = app_commands.Group(
         name="all",

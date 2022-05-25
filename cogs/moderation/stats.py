@@ -15,9 +15,11 @@ from utils import *
 
 class Stats(ExultCog):
     @app_commands.command(
-        name="modstats", description="View moderation stats for a given member."
+        name="modstats",
+        description="View moderation stats for a given member.",
     )
     @app_commands.describe(member="The member you want to view moderation stats for.")
+    @app_commands.default_permissions(manage_messages=True)
     async def modstats_slash(
         self, itr: discord.Interaction, member: discord.Member = None
     ):

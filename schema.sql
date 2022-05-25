@@ -3,18 +3,19 @@ CREATE TABLE IF NOT EXISTS guilds (
     moderator_roles BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
     moderator_users BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
     admin_roles BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
-    admin_users BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
+    admin_users BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[]
 );
 
 CREATE TABLE IF NOT EXISTS counting_config (
     guild_id BIGINT PRIMARY KEY
         REFERENCES guilds(guild_id)
             ON DELETE CASCADE,
-    channel_id BIGINT NOT NULL,
+    channel_id BIGINT,
     lives INT,
     blacklisted_users BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
     blacklisted_roles BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
-    whitelist BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[]
+    num BIGINT DEFAULT 0,
+    user_id BIGINT DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS levelling_config (
@@ -25,12 +26,9 @@ CREATE TABLE IF NOT EXISTS levelling_config (
     xp_modifier FLOAT NOT NULL DEFAULT 1.0,
     blacklisted_roles BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
     blacklisted_channels BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
-    card_background BYTEA,  -- image bytes
+    card_background BYTEA,
     enabled BOOLEAN NOT NULL DEFAULT TRUE,
-        -- defaults to true because you'd need to
-        -- insert when enabling it, wont be enabled
-        -- by default though.
-    levelup_message TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[]
+    levelup_messages TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[]
 );
 
 CREATE TABLE IF NOT EXISTS levelling_rewards (
@@ -40,8 +38,6 @@ CREATE TABLE IF NOT EXISTS levelling_rewards (
             ON DELETE CASCADE,
     level INT NOT NULL,
     role BIGINT,
-    message TEXT,
-        -- special level up message?
     PRIMARY KEY (guild_id, role)
 );
 
@@ -53,8 +49,6 @@ CREATE TABLE IF NOT EXISTS levelling_users (
     xp BIGINT NOT NULL DEFAULT 0,
     level INT NOT NULL DEFAULT 0,
     rewards_earned BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[]
-        -- references levelling_rewards(reward_id) but there's no
-        -- way of doing that in postgresql (yet) .
 );
 
 CREATE TABLE IF NOT EXISTS currency_config (
@@ -72,13 +66,9 @@ CREATE TABLE IF NOT EXISTS shop (
     guild_id BIGINT
         REFERENCES currency_config(guild_id)
             ON DELETE CASCADE,
-    name TEXT,
-    price BIGINT,
-    reward_money FLOAT,
-    reward_role BIGINT,
-    CONSTRAINT mutually_exclusive_rewards
-        CHECK ( (reward_money IS NULL AND reward_role IS NOT NULL) OR
-                (reward_money IS NOT NULL AND reward_role IS NULL) )
+    name TEXT NOT NULL UNIQUE,
+    price BIGINT NOT NULL,
+    reward_role BIGINT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS currency_users (
@@ -156,7 +146,7 @@ CREATE TABLE IF NOT EXISTS modmail_config (
     guild_id BIGINT PRIMARY KEY
         REFERENCES guilds(guild_id)
             ON DELETE CASCADE,
-    category BIGINT NOT NULL,
+    category BIGINT,
     whitelist_roles BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
     whitelist_members BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
     on_create_pings BOOL NOT NULL DEFAULT FALSE,
@@ -171,7 +161,9 @@ CREATE TABLE IF NOT EXISTS log_config (
     message_logs BIGINT,
     user_logs BIGINT,
     moderation_logs BIGINT,
-    voice_logs BIGINT
+    voice_logs BIGINT,
+    member_logs BIGINT,
+    join_logs BIGINT
 );
 
 CREATE TABLE IF NOT EXISTS custom_commands (
@@ -211,6 +203,16 @@ CREATE TABLE IF NOT EXISTS cases (
 CREATE TABLE IF NOT EXISTS commands(
     user_id bigint NOT NULL,
     command_name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS emotion(
+    user_id bigint NOT NULL,
+    action_name text NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS marriages(
+    user_one bigint NOT NULL,
+    user_two bigint NOT NULL
 );
 
 -- LISTENERS

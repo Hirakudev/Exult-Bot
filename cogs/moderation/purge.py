@@ -64,7 +64,9 @@ class Purge(ExultCog):
         return await itr.followup.send(embed=embed)
 
     purge = app_commands.Group(
-        name="purge", description="Purge messages in the current channel."
+        name="purge",
+        description="Purge messages in the current channel.",
+        default_permissions=discord.Permissions(manage_messages=True),
     )
 
     @purge.command(

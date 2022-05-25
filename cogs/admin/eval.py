@@ -32,13 +32,7 @@ class Eval(commands.Cog):
         itr: discord.Interaction,
         return_eph: app_commands.Transform[bool, ReturnEphTransformer] = None,
     ):
-        if await self.bot.is_owner(itr.user) or itr.user.id in [
-            957437570546012240,
-            343019667511574528,
-            689564113415962717,
-            349373972103561218,
-            857103603130302514,
-        ]:
+        if await self.bot.is_owner(itr.user):
             eph = False if return_eph is None else return_eph
             last_sql = await self.bot.pool.fetchval("SELECT last_sql FROM temp_data")
             await itr.response.send_modal(SQLModal(self.bot, eph, last_sql))

@@ -29,20 +29,17 @@ class LevellingCommands(commands.Cog):
 
     @commands.Cog.listener(name="on_message")
     async def levelling_on_message(self, message: discord.Message):
-        if all(
-            (not message.author.bot, message.guild, message.guild.id != self.bot._guild)
-        ):
+        if all((not message.author.bot, message.guild)):
             retry_after = self.cd_mapping.update_rate_limit(message)
             if not retry_after:
                 config = await self.db.get_config(message.guild.id)
+                if not config:
+                    return
                 if message.channel.id in config.get("blacklisted_channels"):
-                    print("b channel")
                     return
                 for role in message.author.roles:
                     if role.id in config.get("blacklisted_roles"):
-                        print("b role")
                         return
-                print("levelling up")
                 await self.client.add_xp(message.author, message)
 
     @app_commands.command(
@@ -68,7 +65,7 @@ class LevellingCommands(commands.Cog):
         required_xp = self.client.formula(level)
         all_users = await self.db.get_users(itr.guild.id)
 
-        profile = [u for u in all_users if u.get("user_id") == itr.user.id]
+        profile = [u for u in all_users if u.get("user_id") == member.id]
         rank = all_users.index(profile[0]) + 1
 
         buffer = await RankCard(bot).make_image(

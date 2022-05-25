@@ -19,6 +19,7 @@ class Core(ExultCog):
         member="A member you want to ban.", reason="The reason for the ban."
     )
     @guild_staff(ban_members=True)
+    @app_commands.default_permissions(ban_members=True)
     @moderation(self_action=True)
     async def ban_slash(
         self,
@@ -80,6 +81,7 @@ class Core(ExultCog):
     )
     @guild_staff(kick_members=True)
     @moderation(self_action=True)
+    @app_commands.default_permissions(kick_members=True)
     async def kick_slash(
         self,
         itr: discord.Interaction,
@@ -140,6 +142,7 @@ class Core(ExultCog):
     )
     @guild_staff(ban_members=True)
     @moderation(self_action=True)
+    @app_commands.default_permissions(ban_members=True)
     async def unban_slash(
         self, itr: discord.Interaction, user: discord.User, reason: str = "Unspecified"
     ):
@@ -201,6 +204,7 @@ class Core(ExultCog):
     )
     @guild_staff(moderate_members=True)
     @moderation(self_action=True)
+    @app_commands.default_permissions(moderate_members=True)
     async def mute_slash(
         self,
         itr: discord.Interaction,
@@ -273,6 +277,7 @@ class Core(ExultCog):
     )
     @guild_staff(moderate_members=True)
     @moderation(self_action=True)
+    @app_commands.default_permissions(moderate_members=True)
     async def tempmute_slash(
         self,
         itr: discord.Interaction,
@@ -343,6 +348,7 @@ class Core(ExultCog):
     )
     @guild_staff(moderate_members=True)
     @moderation(self_action=True)
+    @app_commands.default_permissions(moderate_members=True)
     async def unmute_slash(
         self,
         itr: discord.Interaction,

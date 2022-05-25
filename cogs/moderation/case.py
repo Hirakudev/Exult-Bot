@@ -16,7 +16,9 @@ from utils import *
 class Case(ExultCog):
 
     case = app_commands.Group(
-        name="case", description="Handle Moderation Cases stored for this server!"
+        name="case",
+        description="Handle Moderation Cases stored for this server!",
+        default_permissions=discord.Permissions(manage_messages=True),
     )
 
     @case.command(

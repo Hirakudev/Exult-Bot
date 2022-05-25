@@ -23,7 +23,9 @@ class LogsConfig(commands.Cog):
     ]
 
     logs_group = app_commands.Group(
-        name="logs", description="Configure the Logging feature!"
+        name="logs",
+        description="Configure the Logging feature!",
+        default_permissions=discord.Permissions(manage_guild=True),
     )
 
     @logs_group.command(
@@ -106,6 +108,8 @@ class LogsConfig(commands.Cog):
         channels = [c for c in itr.guild.text_channels]
         choices = [
             app_commands.Choice(name=f"Disable {log_type}", value="disable"),
-            app_commands.Choice(name="Create a channel for me", value="create"),
         ] + [app_commands.Choice(name=f"#{c.name}", value=str(c.id)) for c in channels]
         return [c for c in choices if current in c.name]
+
+
+# app_commands.Choice(name="Create a channel for me", value="create"),

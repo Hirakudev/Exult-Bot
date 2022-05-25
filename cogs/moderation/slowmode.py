@@ -16,7 +16,9 @@ from utils.helpers import FutureTime
 class Slowmode(ExultCog):
 
     slowmode = app_commands.Group(
-        name="slowmode", description="Enable or Disable Slowmode."
+        name="slowmode",
+        description="Enable or Disable Slowmode.",
+        default_permissions=discord.Permissions(manage_channels=True),
     )
 
     @slowmode.command(name="on", description="Enable slowmode for a given channel.")

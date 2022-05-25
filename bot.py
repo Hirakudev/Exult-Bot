@@ -51,10 +51,10 @@ class ExultBot(commands.AutoShardedBot):
         )
         self.kimochi_client = kwargs.get("kimochi_client")
         super().__init__(
-            command_prefix="t!",
+            command_prefix="e!",
             description="An all-in-one bot to fit all your needs. Moderation, Fun, Utility and More!",
             activity=discord.Activity(
-                type=discord.ActivityType.watching, name="Exult Rewrite"
+                type=discord.ActivityType.watching, name="Slash Commands!"
             ),
             intents=discord.Intents.all(),
         )
@@ -72,10 +72,7 @@ class ExultBot(commands.AutoShardedBot):
         ] = collections.defaultdict(set)
         self._db_listener_connection: asyncpg.Connection = listener_connection
 
-        self.exult_guild = None
-        self.bot_logs = None
-        self.dev_role = None
-        self.owner_id = 957437570546012240
+        self.owner_ids = [957437570546012240, 349373972103561218, 857103603130302514]
 
     red = 0xFB5F5F
     green = 0x2ECC71
@@ -85,11 +82,26 @@ class ExultBot(commands.AutoShardedBot):
     )
 
     async def setup_hook(self):
-        exts = ["jishaku", "cogs.fun", "cogs.admin"]
+        exts = ["jishaku"] + [
+            f"cogs.{x}"
+            for x in (
+                "admin",
+                "bot_events",
+                "counting",
+                "fun",
+                "guild_config",
+                "levelling",
+                "logs",
+                "miscellaneous",
+                "moderation",
+                "utility",
+            )
+        ]
         for ext in exts:
             await self.load_extension(ext)
         await self.populate_cache()
         await self.create_db_listeners()
+        self.remove_command("help")
 
     async def populate_cache(self, guild_id: Optional[int] = None) -> None:
         query = """
@@ -184,8 +196,8 @@ class ExultBot(commands.AutoShardedBot):
             print(msg)
         else:
             self.exult_guild = self.get_guild(912148314223415316)
-            self.bot_logs = self.get_channel(961278438965116949)
-            self.error_logs = self.get_channel(961090013624401970)
+            self.bot_logs = self.get_channel(933494408203100170)
+            self.error_logs = self.get_channel(978641023850909776)
             self.dev_role = self.exult_guild.get_role(914159464406470656)
             self._connected = True
             self.startup_time = discord.utils.utcnow() - self.start_time
@@ -194,6 +206,15 @@ class ExultBot(commands.AutoShardedBot):
                 f"Startup Time: {self.startup_time.total_seconds():.2f} seconds."
             )
             print(msg)
+
+    async def on_message(self, message: discord.Message):
+        if message.content.startswith("e!"):
+            await message.reply(
+                "We've switched to slash commands! Message commands may make a return alongside "
+                "slash someday but for now we're slash commands only. \nType `/` and click on my "
+                "profile picture to view what commands I have!"
+            )
+        await self.process_commands(message)
 
     async def on_error(self, event: str, *args, **kwargs):
         error_type, error, traceback_object = sys.exc_info()
@@ -206,7 +227,7 @@ class ExultBot(commands.AutoShardedBot):
             colour=self.red,
             timestamp=discord.utils.utcnow(),
         )
-        await self.get_channel(933494408203100170).send(embed=embed)
+        await self.get_channel(978641023850909776).send(embed=embed)
         return await super().on_error(event, *args, **kwargs)
 
     async def on_tree_error(
@@ -283,7 +304,7 @@ class ExultBot(commands.AutoShardedBot):
     async def try_send(user: Union[discord.User, discord.Member], *args, **kwargs):
         try:
             await user.send(*args, **kwargs)
-        except discord.Forbidden:
+        except:
             pass
 
     @staticmethod

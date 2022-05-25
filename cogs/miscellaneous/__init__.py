@@ -3,7 +3,6 @@ import discord
 # Discord Imports
 
 from .avatar import Avatar
-from .userinfo import UserInfo
 
 # Cog Imports
 
@@ -13,11 +12,9 @@ from utils import *
 # Local Imports
 
 
-class Miscellaneous(Avatar, UserInfo):
+class Miscellaneous(Avatar):
     """Miscellaneous Cog"""
 
 
 async def setup(bot: ExultBot):
-    await bot.add_cog(
-        Miscellaneous(bot), guilds=[discord.Object(guild) for guild in bot.app_guilds]
-    )
+    await bot.add_cog(Miscellaneous(bot))

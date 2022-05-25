@@ -37,6 +37,8 @@ class Loggers(commands.Cog):
     @commands.Cog.listener(name="on_guild_channel_delete")  # WORKS
     async def logs_channel_delete(self, channel: guild_channels):
         config = await self.db.get_config(channel.guild.id)
+        if not config:
+            return
         if not config.get("guild_logs"):
             return
         log_channel = self.bot.get_channel(config.get("guild_logs"))
@@ -63,6 +65,8 @@ class Loggers(commands.Cog):
     @commands.Cog.listener(name="on_guild_channel_create")  # WORKS
     async def logs_channel_create(self, channel: guild_channels):
         config = await self.db.get_config(channel.guild.id)
+        if not config:
+            return
         if not config.get("guild_logs"):
             return
         log_channel = self.bot.get_channel(config.get("guild_logs"))
@@ -86,6 +90,8 @@ class Loggers(commands.Cog):
     @commands.Cog.listener(name="on_guild_channel_update")  # WORKS
     async def logs_channel_update(self, before: guild_channels, after: guild_channels):
         config = await self.db.get_config(after.guild.id)
+        if not config:
+            return
         if not config.get("guild_logs"):
             return
         log_channel = self.bot.get_channel(config.get("guild_logs"))
@@ -141,6 +147,8 @@ class Loggers(commands.Cog):
     @commands.Cog.listener(name="on_guild_update")  # WORKS
     async def logs_guild_update(self, before: discord.Guild, after: discord.Guild):
         config = await self.db.get_config(after.id)
+        if not config:
+            return
         if not config.get("guild_logs"):
             return
         log_channel = self.bot.get_channel(config.get("guild_logs"))
@@ -188,6 +196,8 @@ class Loggers(commands.Cog):
     @commands.Cog.listener(name="on_member_join")  # WORKS
     async def logs_member_join(self, member: discord.Member):
         config = await self.db.get_config(member.guild.id)
+        if not config:
+            return
         if not config.get("join_logs"):
             return
         log_channel = self.bot.get_channel(config.get("join_logs"))
@@ -210,6 +220,8 @@ class Loggers(commands.Cog):
     @commands.Cog.listener(name="on_member_remove")  # WORKS
     async def logs_member_remove(self, member: discord.Member):
         config = await self.db.get_config(member.guild.id)
+        if not config:
+            return
         if not config.get("guild_logs"):
             return
         time = self.bot.time(datetime.datetime.utcnow() - datetime.timedelta(seconds=2))
@@ -236,7 +248,9 @@ class Loggers(commands.Cog):
 
     @commands.Cog.listener(name="on_member_update")  # WORKS
     async def logs_member_update(self, before: discord.Member, after: discord.Member):
-        config = await self.db.get_config(self.bot._guild)
+        config = await self.db.get_config(before.guild)
+        if not config:
+            return
         if not config.get("member_logs"):
             return
         log_channel = self.bot.get_channel(config.get("member_logs"))
@@ -320,47 +334,51 @@ class Loggers(commands.Cog):
             )
             await hook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url)
 
-    @commands.Cog.listener(name="on_user_update")  # WORKS
-    async def logs_user_update(self, before: discord.User, after: discord.User):
-        config = await self.db.get_config(self.bot._guild)
-        if not config.get("member_logs"):
-            return
-        log_channel = self.bot.get_channel(config.get("member_logs"))
-        hook = await self.get_webhook(log_channel, "User Logs")
-        if before.avatar != after.avatar:
-            if not after.avatar:
-                msg = {
-                    "title": "User Avatar Removed | Log",
-                    "description": f"**User:** `{after}`",
-                    "thumbnail": after.default_avatar.url,
-                }
-            else:
-                msg = {
-                    "title": "User Avatar Updated | Log",
-                    "description": f"**User:** `{after}`",
-                    "thumbnail": self.bot.try_asset(after.avatar, after.default_avatar),
-                }
-        elif before.name != after.name:
-            msg = {
-                "title": "User Name Updated | Log",
-                "description": f"**Before:** `{before}`\n**After:** `{after}`",
-            }
-        elif before.discriminator != after.discriminator:
-            msg = {
-                "title": "User Discriminator Updated | Log",
-                "description": f"**Before:** `{before}`\n**After:** `{after}`",
-            }
-        if msg:
-            embed = embed_builder(
-                title=msg.get("title"),
-                description=msg.get("description"),
-                thumbnail=msg.get("thumbnail"),
-            )
-            await hook.send(embed=embed)
+    # @commands.Cog.listener(name="on_user_update")  # WORKS
+    # async def logs_user_update(self, before: discord.User, after: discord.User):
+    #    config = await self.db.get_config(self.bot._guild)
+    #    if not config:
+    #        return
+    #    if not config.get("member_logs"):
+    #        return
+    #    log_channel = self.bot.get_channel(config.get("member_logs"))
+    #    hook = await self.get_webhook(log_channel, "User Logs")
+    #    if before.avatar != after.avatar:
+    #        if not after.avatar:
+    #            msg = {
+    #                "title": "User Avatar Removed | Log",
+    #                "description": f"**User:** `{after}`",
+    #                "thumbnail": after.default_avatar.url,
+    #            }
+    #        else:
+    #            msg = {
+    #                "title": "User Avatar Updated | Log",
+    #                "description": f"**User:** `{after}`",
+    #                "thumbnail": self.bot.try_asset(after.avatar, after.default_avatar),
+    #            }
+    #    elif before.name != after.name:
+    #        msg = {
+    #            "title": "User Name Updated | Log",
+    #            "description": f"**Before:** `{before}`\n**After:** `{after}`",
+    #        }
+    #    elif before.discriminator != after.discriminator:
+    #        msg = {
+    #            "title": "User Discriminator Updated | Log",
+    #            "description": f"**Before:** `{before}`\n**After:** `{after}`",
+    #        }
+    #    if msg:
+    #        embed = embed_builder(
+    #            title=msg.get("title"),
+    #            description=msg.get("description"),
+    #            thumbnail=msg.get("thumbnail"),
+    #        )
+    #        await hook.send(embed=embed)
 
     @commands.Cog.listener(name="on_member_ban")
     async def logs_member_ban(self, guild: discord.Guild, member: discord.User):
         config = await self.db.get_config(guild.id)
+        if not config:
+            return
         if not config.get("moderation_logs"):
             return
         log_channel = self.bot.get_channel(config.get("moderation_logs"))
@@ -387,6 +405,8 @@ class Loggers(commands.Cog):
     @commands.Cog.listener(name="on_member_unban")
     async def logs_member_unban(self, guild: discord.Guild, member: discord.User):
         config = await self.db.get_config(guild.id)
+        if not config:
+            return
         if not config.get("moderation_logs"):
             return
         log_channel = self.bot.get_channel(config.get("moderation_logs"))
@@ -415,6 +435,8 @@ class Loggers(commands.Cog):
         if before.author.bot:
             return
         config = await self.db.get_config(before.guild.id)
+        if not config:
+            return
         if not config.get("message_logs"):
             return
         log_channel = self.bot.get_channel(config.get("message_logs"))
@@ -436,6 +458,8 @@ class Loggers(commands.Cog):
     @commands.Cog.listener(name="on_message_delete")
     async def logs_message_delete(self, msg: discord.Message):
         config = await self.db.get_config(msg.guild.id)
+        if not config:
+            return
         if not config.get("message_logs"):
             return
         time = self.bot.time(
@@ -478,6 +502,8 @@ class Loggers(commands.Cog):
     @commands.Cog.listener(name="on_guild_role_delete")
     async def logs_guild_role_delete(self, role: discord.Role):
         config = await self.db.get_config(role.guild.id)
+        if not config:
+            return
         if not config.get("guild_logs"):
             return
         log_channel = self.bot.get_channel(config.get("guild_logs"))
@@ -496,6 +522,8 @@ class Loggers(commands.Cog):
     @commands.Cog.listener(name="on_guild_role_create")
     async def logs_guild_role_create(self, role: discord.Role):
         config = await self.db.get_config(role.guild.id)
+        if not config:
+            return
         if not config.get("guild_logs"):
             return
         log_channel = self.bot.get_channel(config.get("guild_logs"))
@@ -520,6 +548,8 @@ class Loggers(commands.Cog):
     @commands.Cog.listener(name="on_guild_role_update")
     async def logs_guild_role_update(self, before: discord.Role, after: discord.Role):
         config = await self.db.get_config(before.guild.id)
+        if not config:
+            return
         if not config.get("guild_logs"):
             return
         log_channel = self.bot.get_channel(config.get("guild_logs"))
@@ -621,6 +651,8 @@ class Loggers(commands.Cog):
     ):
         msg = None
         config = await self.db.get_config(member.guild.id)
+        if not config:
+            return
         if not config.get("voice_logs"):
             return
         log_channel = self.bot.get_channel(config.get("voice_logs"))

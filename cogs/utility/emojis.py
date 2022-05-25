@@ -9,7 +9,9 @@ from utils import *
 class Emojis(ExultCog):
 
     emojis_group = app_commands.Group(
-        name="emoji", description="Configure emojis in the server!"
+        name="emoji",
+        description="Configure emojis in the server!",
+        default_permissions=discord.Permissions(manage_emojis=True),
     )
 
     @emojis_group.command(name="add", description="Add an emoji to the server!")
