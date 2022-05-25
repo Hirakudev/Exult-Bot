@@ -6,3 +6,4 @@ from .logs import LogsDB
 from .guilds import GuildsDB
 from .levelling import LevellingDB
 from .welcome import WelcomeDB
+from .emotion import EmotionDB

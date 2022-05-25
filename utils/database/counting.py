@@ -1,143 +1,161 @@
-from typing import Union
+import discord
+
+from typing import Union, List
 
 from ._core import CoreDB
 
 
 class CountingDB(CoreDB):
-    async def get_config(self, *, guild_id: int):
+    async def new_config(
+        self, guild: Union[discord.Guild, int], channel: Union[discord.TextChannel, int]
+    ) -> None:
+        guild_id = guild.id if isinstance(guild, discord.Guild) else guild
+        channel_id = channel.id if isinstance(channel, discord.TextChannel) else channel
         async with self.pool.acquire() as conn:
-            config = await conn.fetchrow(
-                "SELECT * FROM counting_config WHERE guild_id=$1", guild_id
-            )
-            if config:
-                return config
-        return None
-
-    async def set_config(self, *, guild_id: int, channel_id: int = None):
-        async with self.pool.acquire() as conn:
-            config = await self.get_config(guild_id=guild_id)
-            if not config:
+            async with conn.transaction():
                 await conn.execute(
-                    "INSERT INTO counting_config (guild_id, channel_id, num, user_id) VALUES ($1, $2, $3, $3)",
+                    "INSERT INTO counting_config (guild_id, channel_id) VALUES ($1, $2)",
                     guild_id,
                     channel_id,
-                    0,
                 )
-                return
-            await conn.execute(
-                "UPDATE counting_config SET channel_id=$1 WHERE guild_id=$2",
-                channel_id,
-                guild_id,
-            )
-            await conn.execute(
-                "UPDATE counting_config SET num=$1 WHERE guild_id=$2", 0, guild_id
-            )
-            await conn.execute(
-                "UPDATE counting_config SET user_id=$1 WHERE guild_id=$2", 0, guild_id
-            )
 
-    async def remove_config(self, *, guild_id: int):
+    async def get_config(self, guild: Union[discord.Guild, int]) -> Union[dict, None]:
+        guild_id = guild.id if isinstance(guild, discord.Guild) else guild
         async with self.pool.acquire() as conn:
-            await conn.execute(
-                "DELETE FROM counting_config WHERE guild_id=$1", guild_id
-            )
+            async with conn.transaction():
+                config = await conn.fetchrow(
+                    "SELECT * FROM counting_config WHERE guild_id=$1", guild_id
+                )
+            if config:
+                return dict(config)
+        return None
 
-    async def reset_progress(self, *, guild_id: int):
+    async def delete_config(self, guild: Union[discord.Guild, int]) -> bool:
+        guild_id = guild.id if isinstance(guild, discord.Guild) else guild
+        config = await self.get_config(guild_id)
+        if not config:
+            return False
         async with self.pool.acquire() as conn:
-            await conn.execute(
-                "UPDATE counting_config SET num=$1 WHERE guild_id=$2", 0, guild_id
-            )
-            await conn.execute(
-                "UPDATE counting_config SET user_id=$1 WHERE guild_id=$2", 0, guild_id
-            )
-
-    async def add_num(self, *, guild_id: int, user_id: int):
-        config = await self.get_config(guild_id=guild_id)
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                "UPDATE counting_config SET num=$1 WHERE guild_id=$2",
-                config["num"] + 1,
-                guild_id,
-            )
-            await conn.execute(
-                "UPDATE counting_config SET user_id=$1 WHERE guild_id=$2",
-                user_id,
-                guild_id,
-            )
-
-    async def set_channel(self, *, guild_id: int, channel: Union[int, None]):
-        config = await self.get_config(guild_id=guild_id)
-        if config:
-            async with self.pool.acquire() as conn:
+            async with conn.transaction():
                 await conn.execute(
-                    "UPDATE counting_config SET channel_id=$1 WHERE guild_id=$2",
-                    channel,
+                    "DELETE FROM counting_config WHERE guild_id=$1", guild_id
+                )
+                return True
+
+    async def reset_progress(self, guild: Union[discord.Guild, int]) -> bool:
+        guild_id = guild.id if isinstance(guild, discord.Guild) else guild
+        config = await self.get_config(guild_id)
+        if not config:
+            return False
+        async with self.pool.acquire() as conn:
+            async with conn.transaction():
+                await conn.execute(
+                    "UPDATE counting_config SET num=$1, user_id=$1 WHERE guild_id=$2",
+                    0,
                     guild_id,
                 )
-            return True
-        await self.set_config(guild_id=guild_id, channel_id=channel)
+                return True
 
-    async def add_blacklisted_role(self, *, guild_id: int, role_id: int):
-        config = await self.get_config(guild_id=guild_id)
-        if any(role_id == role for role in config["blacklisted_roles"]):
+    async def set_channel(
+        self,
+        guild: Union[discord.Guild, int],
+        channel: Union[discord.TextChannel, int, None],
+    ) -> bool:
+        guild_id = guild.id if isinstance(guild, discord.Guild) else guild
+        channel_id = channel.id if isinstance(channel, discord.TextChannel) else channel
+        config = await self.get_config(guild_id)
+        if not config:
             return False
-        config["blacklisted_roles"].append(role_id)
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                "UPDATE counting_config SET blacklisted_roles=$1 WHERE guild_id=$2",
-                config["blacklisted_roles"],
-                guild_id,
-            )
-        return True
-
-    async def add_blacklisted_user(self, *, guild_id: int, user_id: int):
-        config = await self.get_config(guild_id=guild_id)
-        if any(user_id == user for user in config["blacklisted_users"]):
+        if config.get("channel_id") == channel_id:
             return False
-        config["blacklisted_users"].append(user_id)
         async with self.pool.acquire() as conn:
-            await conn.execute(
-                "UPDATE counting_config SET blacklisted_users=$1 WHERE guild_id=$2",
-                config["blacklisted_users"],
-                guild_id,
-            )
-        return True
+            async with conn.transaction():
+                await conn.execute(
+                    "UPDATE counting_config SET channel_id=$1 WHERE guild_id=$2",
+                    channel_id,
+                    guild_id,
+                )
+                return True
 
-    async def remove_blacklisted_role(self, *, guild_id: int, role_id: int):
-        config = await self.get_config(guild_id=guild_id)
-        if not any(role_id == role for role in config["blacklisted_roles"]):
+    async def blacklist_add(
+        self,
+        guild: Union[discord.Guild, int],
+        item: Union[discord.Role, discord.Member, int],
+    ) -> bool:
+        if isinstance(item, int):
+            if isinstance(guild, int):
+                guild = self.bot.get_guild(guild)
+            combined = guild.members + guild.roles
+            item = discord.utils.get(combined, id=item)
+            if not item:
+                return False
+        guild_id = guild.id if isinstance(guild, discord.Guild) else guild
+        config = await self.get_config(guild_id)
+        if not config:
             return False
-        config["blacklisted_roles"].remove(role_id)
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                "UPDATE counting_config SET blacklisted_roles=$1 WHERE guild_id=$2",
-                config["blacklisted_roles"],
-                guild_id,
-            )
-        return True
-
-    async def remove_blacklisted_user(self, *, guild_id: int, user_id: int):
-        config = await self.get_config(guild_id=guild_id)
-        if not any(user_id == user for user in config["blacklisted_users"]):
+        if isinstance(item, discord.Role):
+            blacklist_type = "blacklisted_roles"
+        else:
+            blacklist_type = "blacklisted_users"
+        blacklist: list = config.get(blacklist_type)
+        if item.id in blacklist:
             return False
-        config["blacklisted_users"].remove(user_id)
+        blacklist.append(item.id)
         async with self.pool.acquire() as conn:
-            await conn.execute(
-                "UPDATE counting_config SET blacklisted_users=$1 WHERE guild_id=$2",
-                config["blacklisted_users"],
-                guild_id,
-            )
-        return True
+            async with conn.transaction():
+                await conn.execute(
+                    f"UPDATE counting_config SET {blacklist_type}=$1 WHERE guild_id=$2",
+                    blacklist,
+                    guild_id,
+                )
+                return True
 
-    async def get_blacklisted(self, *, guild_id: int, **kwargs):
-        if kwargs.get("get"):
-            get = "users" if kwargs.get("get") == "users" else "roles"
-
+    async def blacklist_remove(
+        self,
+        guild: Union[discord.Guild, int],
+        item: Union[discord.Role, discord.Member, int],
+    ) -> bool:
+        if isinstance(item, int):
+            if isinstance(guild, int):
+                guild = self.bot.get_guild(guild)
+            combined = guild.members + guild.roles
+            item = discord.utils.get(combined, id=item)
+            if not item:
+                return False
+        guild_id = guild.id if isinstance(guild, discord.Guild) else guild
+        config = await self.get_config(guild_id)
+        if not config:
+            return False
+        if isinstance(item, discord.Role):
+            blacklist_type = "blacklisted_roles"
+        else:
+            blacklist_type = "blacklisted_users"
+        blacklist: list = config.get(blacklist_type)
+        if item.id not in blacklist:
+            return False
+        blacklist.remove(item.id)
         async with self.pool.acquire() as conn:
-            blacklist = await conn.fetchval(
-                f"SELECT blacklisted_{get} FROM counting_config WHERE guild_id=$1",
-                guild_id,
-            )
-        if len(blacklist):
-            return blacklist
-        return False
+            async with conn.transaction():
+                await conn.execute(
+                    f"UPDATE counting_config SET {blacklist_type}=$1 WHERE guild_id=$2",
+                    blacklist,
+                    guild_id,
+                )
+                return True
+
+    async def add_number(
+        self, guild: Union[discord.Guild, int], user: Union[discord.Member, int]
+    ):
+        guild_id = guild.id if isinstance(guild, discord.Guild) else guild
+        user_id = user.id if isinstance(user, discord.Member) else user
+        config = await self.get_config(guild_id)
+        if not config:
+            return False
+        async with self.pool.acquire() as conn:
+            async with conn.transaction():
+                await conn.execute(
+                    "UPDATE counting_config SET num=num+1, user_id=$1 WHERE guild_id=$2",
+                    user_id,
+                    guild_id,
+                )
+                return True

@@ -15,7 +15,9 @@ class CountingConfig(commands.Cog):
         self.db = CountingDB(bot)
 
     counting = app_commands.Group(
-        name="counting", description="Configure the counting feature!"
+        name="counting",
+        description="Configure the counting feature!",
+        default_permissions=discord.Permissions(manage_guild=True),
     )
     counting_blacklist = app_commands.Group(
         name="blacklist",
@@ -80,15 +82,16 @@ class CountingConfig(commands.Cog):
         await itr.response.defer()
 
         config = await self.db.get_config(itr.guild.id)
-        if not config or not config.get("channel_id"):
-            return await itr.edit_original_message(
-                content="Counting has not been configured for this server!"
-            )
+        new_conf = False
+        if not config:
+            await self.db.new_config(itr.guild.id, channel.id)
+            new_conf = True
         elif config.get("channel_id") == channel.id:
             return await itr.edit_original_message(
                 content=f"The counting channel is already set to {channel.mention}!"
             )
-        await self.db.set_channel(itr.guild.id, channel.id)
+        if not new_conf:
+            await self.db.set_channel(itr.guild.id, channel.id)
         return await itr.edit_original_message(
             content=f"The counting channel has been set to {channel.mention}!"
         )

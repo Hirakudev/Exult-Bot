@@ -1,20 +1,31 @@
-from ._core import CoreDB
+import discord
 
-# Local Imports
+from typing import Union
+
+from ._core import CoreDB
 
 
 class LogsDB(CoreDB):
-    async def get_moderation_logs(self, guild_id):
+    log_types = [
+        "guild_logs",
+        "join_logs",
+        "member_logs",
+        "message_logs",
+        "moderation_logs",
+        "voice_logs",
+    ]
+
+    async def new_config(self, guild: Union[discord.Guild, int]):
+        guild_id = guild.id if isinstance(guild, discord.Guild) else guild
         async with self.pool.acquire() as conn:
             async with conn.transaction():
-                log = await conn.fetchval(
-                    "SELECT moderation_logs FROM log_config WHERE guild_id=$1", guild_id
+                await conn.execute(
+                    "INSERT INTO log_config (guild_id) VALUES ($1)", guild_id
                 )
-                if log:
-                    return log
-        return None
+        config = await self.get_config(guild_id)
 
-    async def get_config(self, *, guild_id: int):
+    async def get_config(self, guild: Union[discord.Guild, int]):
+        guild_id = guild.id if isinstance(guild, discord.Guild) else guild
         async with self.pool.acquire() as conn:
             async with conn.transaction():
                 config = await conn.fetchrow(
@@ -24,8 +35,19 @@ class LogsDB(CoreDB):
                     return dict(config)
         return None
 
-    async def set_log(self, *, guild_id: int, log: str, channel_id):
-        config = await self.get_config(guild_id=guild_id)
+    async def set_log(
+        self,
+        guild: Union[discord.Guild, int],
+        log: str,
+        channel: Union[discord.TextChannel, int, None],
+    ):
+        guild_id = guild.id if isinstance(guild, discord.Guild) else guild
+        channel_id = channel.id if isinstance(channel, discord.TextChannel) else channel
+        if log not in self.log_types:
+            return False
+        config = await self.get_config(guild_id)
+        if not config:
+            config = await self.new_config(guild_id)
         if config.get(log) == channel_id:
             return False
         async with self.pool.acquire() as conn:
@@ -35,4 +57,4 @@ class LogsDB(CoreDB):
                     channel_id,
                     guild_id,
                 )
-        return True
+                return True
