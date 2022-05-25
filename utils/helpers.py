@@ -30,16 +30,18 @@ lines 267-274 https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py
 
 import discord
 from discord.ext import commands
+from jishaku.functools import executor_function
 
 # Discord Imports
 
-from typing import Union, Iterable, Any
+from typing import Union, Iterable, Any, Dict, List
 import re
 from dateutil.relativedelta import relativedelta
 import parsedatetime as pdt
 import datetime
 import kimochi
 import humanize
+import pytz
 
 # Regular Imports
 
@@ -217,11 +219,11 @@ class plural:
 
 class TabularData:
     def __init__(self):
-        self._widths: list[int] = []
-        self._columns: list[str] = []
-        self._rows: list[list[str]] = []
+        self._widths: List[int] = []
+        self._columns: List[str] = []
+        self._rows: List[List[str]] = []
 
-    def set_columns(self, columns: list[str]):
+    def set_columns(self, columns: List[str]):
         self._columns = columns
         self._widths = [len(c) + 2 for c in columns]
 
@@ -342,17 +344,145 @@ class Emotions:
         self,
         itr: discord.Interaction,
         *,
-        married: bool,
         person: discord.Member,
         target: Union[discord.Member, discord.User],
-    ) -> discord.Embed:
-        if married:
-            return "You are already married! Imagine cheating, you fucking idiot."
+    ):
+        print("creating marriage image")
         marry = Marriage(person, target, session=self.client.session)
         file = discord.File(await marry.marry_pic(), filename="marry.png")
         embed: discord.Embed = discord.Embed(
-            title=f"{person.display_name} is now married to {target.display_name}!",
+            title=f"{person.display_name} and {target.display_name} are now married!",
             color=0xFB5F5F,
         )
         embed.set_image(url="attachment://marry.png")
-        return embed
+        print("completed marriage image")
+        return {"embed": embed, "file": file}
+
+
+class ServerUtils:
+    def __init__(self) -> None:
+        self.status_dict = {
+            "online": "\U0001f7e2",
+            "idle": "\U0001f7e1",
+            "dnd": "\U0001f534",
+            "offline": "\U000026ab",
+        }
+
+    def checks(self, itr: discord.Interaction) -> bool:
+        return bool(itr.guild)
+
+    def conv(self, num: int):
+        __num = num
+        num = str(f"{num:,}").split(",")
+        if len(str(__num)) == 4:
+            return f"{num[0]}.{num[1][0]}k"
+        elif len(str(__num)) == 5:
+            return f"{num[0]}.{num[1][0]}k"
+        if len(num) > 2:
+            return num[0] + "k"
+        if len(num) > 3:
+            return num[0] + "m"
+        return num[0]
+
+    def gtx(self, num: int, *, bound: int) -> int:
+        if num % bound == 0:
+            return num + bound
+        return num - (num % bound) + bound
+
+    def status_count(self, itr: discord.Interaction) -> Dict[str, int]:
+        online = 0
+        idle = 0
+        dnd = 0
+        offline = 0
+        for m in itr.guild.members:
+            if m.status == discord.Status.online:
+                online += 1
+            elif m.status == discord.Status.idle:
+                idle += 1
+            elif m.status == discord.Status.dnd:
+                dnd += 1
+            else:
+                offline += 1
+        return f"\U0001f7e2{online}\U0001f7e1{idle}\U0001f534{dnd}\U000026ab{offline}"
+
+    def get_time(self, country: str):
+        timezone = pytz.timezone(country)
+        now = datetime.datetime.now(timezone)
+        return now.strftime("%H:%M")
+
+    async def create_channels(
+        self, itr: discord.Interaction, *, milestone: int, time: str
+    ):
+        category = await itr.guild.create_category_channel(name="Server Stats")
+        overwrites = {
+            itr.guild.default_role: discord.PermissionOverwrite(
+                connect=False, view_channel=True
+            )
+        }
+        await category.create_voice_channel(
+            name=f"\U000023f0 {self.get_time(time)}", overwrites=overwrites
+        )
+        await category.create_voice_channel(
+            name=f"\U0001f468 \U0001f469 Member Count: {itr.guild.member_count}",
+            overwrites=overwrites,
+        )
+        await category.create_voice_channel(
+            name=self.status_count(itr), overwrites=overwrites
+        )
+        await category.create_voice_channel(
+            name=f"\U0001f4c8 {itr.guild.member_count}/{milestone}",
+            overwrites=overwrites,
+        )
+        await category.edit(position=0)
+
+
+class CommandUtils:
+    def __init__(self, bot: commands.Bot) -> None:
+        self.bot: commands.Bot = bot
+        self.cache: Dict[Union[str, int], Any] = {}
+
+    def checks(self, message: discord.Message) -> bool:
+        if message.author.bot and not message.guild:
+            return False
+        return True
+
+    async def get_prefix(
+        self, ctx: Union[commands.Context, discord.Message]
+    ) -> Optional[str]:
+        pre = await self.bot.get_prefix(
+            ctx.message if isinstance(ctx, commands.Context) else ctx
+        )
+        return pre[0] if isinstance(pre, list) else pre
+
+    async def create_command(
+        self, ctx: commands.Context, name: str, response: str
+    ) -> None:
+        if self.checks(ctx.message):
+            if ctx.guild is not None:
+                resp = {
+                    name: {
+                        "name": name,
+                        "response": response,
+                        "author": ctx.author.id,
+                        "created_id": ctx.message.created_at.timestamp(),
+                    }
+                }
+                try:
+                    self.cache[ctx.guild.id].update(resp)
+                except KeyError:
+                    self.cache[ctx.guild.id] = {}
+                    self.cache[ctx.guild.id].update(resp)
+
+    async def get_command(
+        self, ctx: commands.Context, name: str
+    ) -> Optional[Dict[str, Any]]:
+        if self.checks(ctx.message):
+            if ctx.guild is not None:
+                return self.cache[ctx.guild.id].get(name, "Not found..")
+
+    async def upload_db(self, ctx: commands.Context) -> None:
+        if self.checks(ctx.message):
+            if ctx.guild is not None:
+
+                ### Your stuff Andeh
+                self.bot.db.update(self.cache[ctx.guild.id])

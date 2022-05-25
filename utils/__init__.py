@@ -13,6 +13,7 @@ from .helpers import (
     plural,
     create_command,
     Emotions,
+    CommandUtils,
 )
 from .checks import guild_staff, moderation
 from .subclasses import ExultCog, Interaction, KnownInteraction
