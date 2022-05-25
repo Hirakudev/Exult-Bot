@@ -18,12 +18,13 @@ class Avatar(ExultCog):
         await itr.response.defer()
         bot: ExultBot = itr.client
         followup: discord.Webhook = itr.followup
-        user = await bot.fetch_user(user.id or itr.user.id)
+        member = itr.user if not user else user
+        user = await bot.fetch_user(member.id)
         avatar = bot.try_asset(user.avatar, user.default_avatar)
 
         embed = embed_builder(author=[avatar, f"{user.name}'s Avatar"], image=avatar)
 
         if user.banner:
             view = AvatarView(user)
-            return followup.send(embed=embed, view=view)
+            return await followup.send(embed=embed, view=view)
         await followup.send(embed=embed)
