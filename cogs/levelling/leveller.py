@@ -64,6 +64,9 @@ class LevellingCommands(commands.Cog):
         level = user.get("level")
         required_xp = self.client.formula(level)
         all_users = await self.db.get_users(itr.guild.id)
+        all_users = sorted(
+            all_users, key=lambda t: (t.get("level"), t.get("xp")), reverse=True
+        )
 
         profile = [u for u in all_users if u.get("user_id") == member.id]
         rank = all_users.index(profile[0]) + 1
