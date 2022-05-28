@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 from bot import ExultBot
 from utils.database import CasesDB
-from utils.helpers import embed_builder, TabularData, plural, cleanup_code
+from utils.helpers import embed_builder, TabularData, plural, cleanup_code, CommandUtils
 
 
 class CaseEditModal(discord.ui.Modal):
@@ -200,3 +200,32 @@ class EvalModal(discord.ui.Modal):
                 self._last_result = ret
                 await itr.followup.send(f"```py\n{value}{ret}\n```", ephemeral=self.eph)
         await self.bot.pool.execute("UPDATE temp_data SET last_eval=$1", code)
+
+
+class CreateCommandModal(discord.ui.Modal):
+    def __init__(self, utils: CommandUtils):
+        self.utils = utils
+        super().__init__(title="Create Custom Command", timeout=60.0)
+        self.add_item(
+            discord.ui.TextInput(
+                label="Command Name",
+                placeholder="ping",
+                style=discord.TextStyle.short,
+            )
+        )
+        self.add_item(
+            discord.ui.TextInput(
+                label="Command Response",
+                placeholder="pong!",
+                style=discord.TextStyle.paragraph,
+            )
+        )
+
+    async def on_submit(self, itr: discord.Interaction):
+        await itr.response.defer()
+        await self.utils.create_command(
+            itr, self.children[0].value, self.children[1].value
+        )
+        await itr.followup.send(
+            content=f"Command Created! Try it with `{await self.utils.get_prefix(itr)}{self.children[0].value}`!"
+        )

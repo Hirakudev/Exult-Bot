@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS tickets (
     PRIMARY KEY (guild_id, channel_id)
 );
 
-CREATE TABLE IF NOT EXISTS stats_tracker (
+CREATE TABLE IF NOT EXISTS serverstats (
     guild_id BIGINT
         REFERENCES guilds(guild_id)
             ON DELETE CASCADE,
@@ -139,7 +139,6 @@ CREATE TABLE IF NOT EXISTS stats_tracker (
     members_channel BIGINT,
     milestone_channel BIGINT,
     status_channel BIGINT,
-    message_channel BIGINT
 );
 
 CREATE TABLE IF NOT EXISTS modmail_config (
@@ -173,6 +172,7 @@ CREATE TABLE IF NOT EXISTS custom_commands (
     command_name TEXT NOT NULL,
     command_text TEXT NOT NULL,
     command_creator BIGINT NOT NULL,
+    created_at BIGINT NOT NULL,
     PRIMARY KEY (guild_id, command_name)
 );
 

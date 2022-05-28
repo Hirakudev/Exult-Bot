@@ -19,4 +19,6 @@ class Utility(Emojis, Role):
 
 
 async def setup(bot: ExultBot):
-    await bot.add_cog(Utility(bot))
+    await bot.add_cog(
+        Utility(bot), guilds=[discord.Object(guild) for guild in bot.app_guilds]
+    )
