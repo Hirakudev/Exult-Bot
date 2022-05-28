@@ -18,4 +18,6 @@ class Levelling(LevellingCommands, LevellingConfig):
 
 
 async def setup(bot: ExultBot):
-    await bot.add_cog(Levelling(bot))
+    await bot.add_cog(
+        Levelling(bot), guilds=[discord.Object(guild) for guild in bot.app_guilds]
+    )
