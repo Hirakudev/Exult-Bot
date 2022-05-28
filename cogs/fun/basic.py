@@ -26,8 +26,7 @@ class Basic(ExultCog):
         ) as data:
             data = await data.json()
 
-        embed = embed_builder(description=data["roast"])
-        await followup.send(embed=embed)
+        await followup.send(data["roast"])
 
     @app_commands.command(name="joke", description="Get a joke!")
     async def joke_slash(self, itr: discord.Interaction):
@@ -41,8 +40,7 @@ class Basic(ExultCog):
         ) as data:
             data = await data.json()
 
-        embed = embed_builder(description=data["joke"])
-        await followup.send(embed=embed)
+        await followup.send(data["joke"])
 
     @app_commands.command(name="fact", description="Get a fact!")
     async def fact_slash(self, itr: discord.Interaction):
@@ -56,8 +54,7 @@ class Basic(ExultCog):
         ) as data:
             data = await data.json()
 
-        embed = embed_builder(description=data["fact"])
-        await followup.send(embed=embed)
+        await followup.send(data["fact"])
 
     pickup = app_commands.Group(name="pickup", description="Get a pickup line!")
 
@@ -73,8 +70,7 @@ class Basic(ExultCog):
         ) as data:
             data = await data.json()
 
-        embed = embed_builder(description=data["joke"])
-        await followup.send(embed=embed)
+        await followup.send(data["joke"])
 
     @app_commands.command(name="8ball", description="Get a 8ball response!")
     async def eight_ball_slash(self, itr: discord.Interaction, query: str):
@@ -88,10 +84,7 @@ class Basic(ExultCog):
         ) as data:
             data = await data.json()
 
-        embed = embed_builder(
-            fields=[["Your query:", query, True], ["Response:", data["response"], True]]
-        )
-        await followup.send(embed=embed)
+        await followup.send(data["response"])
 
     @app_commands.command(name="yomama", description="Get a Yo-Mama joke!")
     async def yo_mama_slash(self, itr: discord.Interaction):
@@ -105,8 +98,7 @@ class Basic(ExultCog):
         ) as data:
             data = await data.json()
 
-        embed = embed_builder(description=data["description"])
-        await followup.send(embed=embed)
+        await followup.send(data["description"])
 
     @app_commands.command(name="meme", description="Get a random meme!")
     async def meme_slash(self, itr: discord.Interaction):
