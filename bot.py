@@ -51,7 +51,7 @@ class ExultBot(commands.AutoShardedBot):
         )
         self.kimochi_client = kwargs.get("kimochi_client")
         super().__init__(
-            command_prefix="e!",
+            command_prefix="t!",
             description="An all-in-one bot to fit all your needs. Moderation, Fun, Utility and More!",
             activity=discord.Activity(
                 type=discord.ActivityType.watching, name="Slash Commands!"
@@ -82,21 +82,8 @@ class ExultBot(commands.AutoShardedBot):
     )
 
     async def setup_hook(self):
-        exts = ["jishaku"] + [
-            f"cogs.{x}"
-            for x in (
-                "admin",
-                "bot_events",
-                "counting",
-                "fun",
-                "guild_config",
-                "levelling",
-                "logs",
-                "miscellaneous",
-                "moderation",
-                "utility",
-            )
-        ]
+        dirs = [dir for dir in os.listdir("cogs")]
+        exts = ["jishaku"] + dirs
         for ext in exts:
             await self.load_extension(ext)
         await self.populate_cache()
@@ -206,15 +193,6 @@ class ExultBot(commands.AutoShardedBot):
                 f"Startup Time: {self.startup_time.total_seconds():.2f} seconds."
             )
             print(msg)
-
-    async def on_message(self, message: discord.Message):
-        if message.content.startswith("e!"):
-            await message.reply(
-                "We've switched to slash commands! Message commands may make a return alongside "
-                "slash someday but for now we're slash commands only. \nType `/` and click on my "
-                "profile picture to view what commands I have!"
-            )
-        await self.process_commands(message)
 
     async def on_error(self, event: str, *args, **kwargs):
         error_type, error, traceback_object = sys.exc_info()
