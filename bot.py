@@ -15,6 +15,7 @@ import logging
 import os
 import pytz
 import sys
+import traceback
 import waifuim
 from concurrent import futures
 from contextlib import asynccontextmanager
@@ -82,7 +83,7 @@ class ExultBot(commands.AutoShardedBot):
     )
 
     async def setup_hook(self):
-        dirs = [dir for dir in os.listdir("cogs")]
+        dirs = [f"cogs.{dir}" for dir in os.listdir("cogs")]
         exts = ["jishaku"] + dirs
         for ext in exts:
             await self.load_extension(ext)
@@ -195,17 +196,19 @@ class ExultBot(commands.AutoShardedBot):
             print(msg)
 
     async def on_error(self, event: str, *args, **kwargs):
-        error_type, error, traceback_object = sys.exc_info()
-        if not error:
-            raise
-
+        error = sys.exc_info()[1]
+        error_type = type(error)
+        trace = error.__traceback__
+        error_message = "".join(traceback.format_exception(error_type, error, trace))
+        channel = self.get_channel(978641023850909776)
         embed = discord.Embed(
-            title=f"An Error Occurred",
-            description=f"**__Event:__** {event.title().replace('_', ' ')}\n**__Error:__** {error_type.__name__}\n```py\n{error}\n```",
+            title="An Error Occurred",
+            description=f"**__Event:__** {event.title().replace('_', ' ')}\n"
+            f"**__Error:__** {error_type.__name__}\n```py\n{error_message}\n```",
             colour=self.red,
             timestamp=discord.utils.utcnow(),
         )
-        await self.get_channel(978641023850909776).send(embed=embed)
+        await channel.send(embed=embed)
         return await super().on_error(event, *args, **kwargs)
 
     async def on_tree_error(
