@@ -29,7 +29,7 @@ EB = TypeVar("EB", bound="ExultBot")
 P = ParamSpec("P")
 
 
-class ExultBot(commands.AutoShardedBot):
+class ExultBot(commands.Bot):
     def __init__(
         self,
         *,
