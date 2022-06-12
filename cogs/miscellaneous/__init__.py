@@ -3,6 +3,7 @@ import discord
 # Discord Imports
 
 from .avatar import Avatar
+from .serverstats import ServerStats
 
 # Cog Imports
 
@@ -12,7 +13,7 @@ from utils import *
 # Local Imports
 
 
-class Miscellaneous(Avatar):
+class Miscellaneous(Avatar, ServerStats):
     """Miscellaneous Cog"""
 
 

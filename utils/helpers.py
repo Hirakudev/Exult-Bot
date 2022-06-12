@@ -34,7 +34,7 @@ from jishaku.functools import executor_function
 
 # Discord Imports
 
-from typing import Union, Iterable, Any, Dict, List
+from typing import Union, Iterable, Any, Dict, List, Optional
 import re
 from dateutil.relativedelta import relativedelta
 import parsedatetime as pdt
@@ -47,6 +47,7 @@ import pytz
 
 from bot import ExultBot
 from .image_gen.emotion import Marriage
+from .database import ServerStatsDB
 
 # Local Imports
 
@@ -360,41 +361,64 @@ class Emotions:
 
 
 class ServerUtils:
-    def __init__(self) -> None:
-        self.status_dict = {
-            "online": "\U0001f7e2",
-            "idle": "\U0001f7e1",
-            "dnd": "\U0001f534",
-            "offline": "\U000026ab",
+    def __init__(
+        self,
+        category: discord.CategoryChannel,
+        timezone: str = None,
+        milestone: int = None,
+    ):
+        self.bot = None
+        self.db = None
+        self.category = category
+        self.func_dict = {
+            "Timezone": [self.timezone_channel, timezone],
+            "MemberCount": self.member_channel,
+            "Channels": self.channel_channel,
+            "Status Counter": self.member_count_channel,
+            "Milestone": [self.milestone_channel, milestone],
+        }
+        self.funcs = ["Timezone", "Member", "Channels", "Status Counter", "Milestone"]
+
+        self.to_be_uploaded = {
+            "Timezone": None,
+            "MemberCount": None,
+            "Channels": None,
+            "Status Counter": None,
+            "Milestone": None,
         }
 
-    def checks(self, itr: discord.Interaction) -> bool:
-        return bool(itr.guild)
+    def overwrites(self, ctx: discord.Interaction):
+        overwrites = {
+            ctx.guild.default_role: discord.PermissionOverwrite(
+                connect=False, view_channel=True
+            )
+        }
+        return overwrites
 
-    def conv(self, num: int):
-        __num = num
-        num = str(f"{num:,}").split(",")
-        if len(str(__num)) == 4:
-            return f"{num[0]}.{num[1][0]}k"
-        elif len(str(__num)) == 5:
-            return f"{num[0]}.{num[1][0]}k"
-        if len(num) > 2:
-            return num[0] + "k"
-        if len(num) > 3:
-            return num[0] + "m"
-        return num[0]
+    @staticmethod
+    def guild_milestone(guild: discord.Guild, milestone: Optional[int] = None) -> int:
+        def gtx(num: int, *, bound: int) -> int:
+            if num % bound == 0:
+                return num + bound
+            return (num - (num % bound)) + bound
 
-    def gtx(self, num: int, *, bound: int) -> int:
-        if num % bound == 0:
-            return num + bound
-        return num - (num % bound) + bound
+        def bound(_num: int) -> int:
+            _num = milestone if milestone else _num
+            return int("1" + "0" * (len(str(_num)) - 1))
 
-    def status_count(self, itr: discord.Interaction) -> Dict[str, int]:
+        __temp = gtx(guild.member_count, bound=bound(guild.member_count))
+
+        if __temp < 100:
+            return 100
+        return gtx(guild.member_count, bound=bound(guild.member_count))
+
+    @staticmethod
+    def guild_member_count(guild: discord.Guild) -> int:
         online = 0
         idle = 0
         dnd = 0
         offline = 0
-        for m in itr.guild.members:
+        for m in guild.members:
             if m.status == discord.Status.online:
                 online += 1
             elif m.status == discord.Status.idle:
@@ -405,35 +429,98 @@ class ServerUtils:
                 offline += 1
         return f"\U0001f7e2{online}\U0001f7e1{idle}\U0001f534{dnd}\U000026ab{offline}"
 
-    def get_time(self, country: str):
-        timezone = pytz.timezone(country)
-        now = datetime.datetime.now(timezone)
-        return now.strftime("%H:%M")
+    @staticmethod
+    def channel_count(guild: discord.Guild):
+        return f"\U0001f4dc {len(guild.text_channels)} \U0001f509 {len(guild.voice_channels)}"
 
-    async def create_channels(
-        self, itr: discord.Interaction, *, milestone: int, time: str
+    @staticmethod
+    def get_time(country: str):
+        try:
+            timezone = pytz.timezone(country)
+            now = datetime.datetime.now(timezone)
+            return now.strftime("%H:%M")
+        except:
+            raise commands.BadArgument("Invalid timezone")
+
+    async def timezone_channel(
+        self,
+        ctx: discord.Interaction,
+        timezone: str = None,
     ):
-        category = await itr.guild.create_category_channel(name="Server Stats")
-        overwrites = {
-            itr.guild.default_role: discord.PermissionOverwrite(
-                connect=False, view_channel=True
+        if timezone is None:
+            return None
+        channel = await self.category.create_voice_channel(
+            name=f"\U000023f0 {self.get_time(timezone)}",
+            position=0,
+            overwrites=self.overwrites(ctx),
+        )
+        self.to_be_uploaded["Timezone"] = [channel.id, timezone]
+
+    async def member_channel(self, ctx: discord.Interaction):
+        channel = await self.category.create_voice_channel(
+            name=f"\U0001fac2 Members {ctx.guild.member_count}",
+            position=1,
+            overwrites=self.overwrites(ctx),
+        )
+        self.to_be_uploaded["MemberCount"] = channel.id
+
+    async def channel_channel(self, ctx: discord.Interaction):
+        channel = await self.category.create_voice_channel(
+            name=self.channel_count(ctx.guild),
+            position=2,
+            overwrites=self.overwrites(ctx),
+        )
+        self.to_be_uploaded["Channels"] = channel.id
+
+    async def member_count_channel(self, ctx: discord.Interaction):
+        channel = await self.category.create_voice_channel(
+            name=self.guild_member_count(ctx.guild),
+            position=3,
+            overwrites=self.overwrites(ctx),
+        )
+        self.to_be_uploaded["Status Counter"] = channel.id
+
+    async def milestone_channel(self, ctx: discord.Interaction, milestone: int) -> None:
+        channel = await self.category.create_voice_channel(
+            name=f"\U0001f4c8 {ctx.guild.member_count}/{self.guild_milestone(ctx.guild, milestone)}",
+            position=4,
+            overwrites=self.overwrites(ctx),
+        )
+        self.to_be_uploaded["Milestone"] = [channel.id, milestone]
+
+    async def create_channels(self, ctx: discord.Interaction, types: list):
+        for _type in types:
+            await self.func_dict[_type][0](ctx, self.func_dict[_type][1]) if isinstance(
+                self.func_dict[_type], list
+            ) else await self.func_dict[_type](ctx)
+        await self.upload_to_db(ctx)
+
+    async def upload_to_db(self, ctx: discord.Interaction):
+        if not self.bot:
+            self.bot = ctx.client
+        if not self.db:
+            self.db = ServerStatsDB(self.bot)
+        time_stats = self.to_be_uploaded.get("Timezone")
+        member_stats = self.to_be_uploaded.get("MemberCount")
+        channel_stats = self.to_be_uploaded.get("Channels")
+        status_stats = self.to_be_uploaded.get("Status Counter")
+        milestone_stats = self.to_be_uploaded.get("Milestone")
+        if time_stats:
+            await self.db.upload_timezone(
+                ctx.guild.id, channel_id=time_stats[0], timezone=time_stats[1]
             )
-        }
-        await category.create_voice_channel(
-            name=f"\U000023f0 {self.get_time(time)}", overwrites=overwrites
-        )
-        await category.create_voice_channel(
-            name=f"\U0001f468 \U0001f469 Member Count: {itr.guild.member_count}",
-            overwrites=overwrites,
-        )
-        await category.create_voice_channel(
-            name=self.status_count(itr), overwrites=overwrites
-        )
-        await category.create_voice_channel(
-            name=f"\U0001f4c8 {itr.guild.member_count}/{milestone}",
-            overwrites=overwrites,
-        )
-        await category.edit(position=0)
+        if member_stats:
+            await self.db.upload_membercount(ctx.guild.id, member_stats)
+        if channel_stats:
+            await self.db.upload_channels(ctx.guild.id, channel_stats)
+        if status_stats:
+            await self.db.upload_statuses(ctx.guild.id, status_stats)
+        if milestone_stats:
+            await self.db.upload_milestone(
+                ctx.guild.id,
+                channel_id=milestone_stats[0],
+                milestone=milestone_stats[1],
+            )
 
 
 class CommandUtils:
