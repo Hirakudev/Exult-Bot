@@ -136,9 +136,12 @@ CREATE TABLE IF NOT EXISTS serverstats (
         REFERENCES guilds(guild_id)
             ON DELETE CASCADE,
     time_channel BIGINT,
-    members_channel BIGINT,
-    milestone_channel BIGINT,
+    timezone TEXT,
+    membercount_channel BIGINT,
+    channels_channel BIGINT,
     status_channel BIGINT,
+    milestone_channel BIGINT,
+    milestone BIGINT
 );
 
 CREATE TABLE IF NOT EXISTS modmail_config (
