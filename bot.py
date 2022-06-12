@@ -180,7 +180,7 @@ class ExultBot(commands.Bot):
 
     async def on_ready(self):
         if self._connected:
-            msg = f"Bot reconnected at {datetime.now().strftime('%b %d %Y %H:%M:%S')}"
+            msg = f"Bot reconnected at {datetime.datetime.now().strftime('%b %d %Y %H:%M:%S')}"
             print(msg)
         else:
             self.exult_guild = self.get_guild(912148314223415316)
