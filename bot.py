@@ -81,6 +81,7 @@ class ExultBot(commands.Bot):
     invite = discord.utils.oauth_url(
         889185777555210281, permissions=discord.Permissions(3757567166)
     )
+    friend_guilds = [652725365856272394]
 
     async def setup_hook(self):
         dirs = [f"cogs.{dir}" for dir in os.listdir("cogs")]
