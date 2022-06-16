@@ -23,13 +23,12 @@ class GuildJoin(ExultCog):
 
         embed = embed_builder(
             title=f"New guild joined",
-            description=f"""
-                         **Name:** {guild.name}
-                         **Owner:** {guild.owner} | `{guild.owner.id}`
-                         **Added by:** {added_by} | `{added_by.id}`
-                         **Total Users:**
-                         👨 {users} | 🤖 {bots} | 💫 {total}
-                         **Bot Farm Risk:** `{'No' if not risk else 'Yes'}`""",
+            description=f"**Name:** {guild.name}\n"
+            f"**Owner:** {guild.owner} | `{guild.owner.id}`\n"
+            f"**Added by:** {added_by} | `{added_by.id}`\n"
+            f"**Total Users:**\n"
+            f"👨 {users} | 🤖 {bots} | 💫 {total}\n"
+            f"**Bot Farm Risk:** `{'No' if not risk else 'Yes'}`",
             author=[
                 self.bot.try_asset(self.bot.user.avatar),
                 f"Guilds: {guilds} | Users: {_users}",

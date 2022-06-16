@@ -18,11 +18,10 @@ class GuildLeave(ExultCog):
 
         embed = embed_builder(
             title=f"Removed from guild",
-            description=f"""
-                         **Name:** {guild.name}
-                         **Owner:** {guild.owner} | `{guild.owner.id}`
-                         **Total Users:**
-                         👨 {users} | 🤖 {bots} | 💫 {total}""",
+            description=f"**Name:** {guild.name}\n"
+            f"**Owner:** {guild.owner} | `{guild.owner.id}`\n"
+            f"**Total Users:**\n"
+            f"👨 {users} | 🤖 {bots} | 💫 {total}",
             author=[
                 self.bot.try_asset(self.bot.user.avatar),
                 f"Guilds: {guilds} | Users: {_users}",
