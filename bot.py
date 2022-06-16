@@ -190,7 +190,7 @@ class ExultBot(commands.Bot):
             self.bot_logs = self.get_channel(933494408203100170)
             self.error_logs = self.get_channel(978641023850909776)
             self.dev_role = self.exult_guild.get_role(914159464406470656)
-            self.owner_ids += [dev.id for dev in self.dev_role.members]
+            self.owner_ids += set([dev.id for dev in self.dev_role.members])
             self._connected = True
             self.startup_time = discord.utils.utcnow() - self.start_time
             msg = (
