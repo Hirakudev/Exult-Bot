@@ -5,3 +5,5 @@ from .logs import LogsDB
 from .guilds import GuildsDB
 from .levelling import LevellingDB
 from .emotion import EmotionDB
+from .serverstats import ServerStatsDB
+from .customcommands import CustomCommandsDB

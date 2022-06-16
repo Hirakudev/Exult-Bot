@@ -83,8 +83,11 @@ class ExultBot(commands.Bot):
     friend_guilds = [652725365856272394]
 
     async def setup_hook(self):
-        dirs = [f"cogs.{dir}" for dir in os.listdir("cogs")]
-        exts = ["jishaku"] + dirs
+        exts = ["jishaku"] + [
+            f"cogs.{ext if not ext.endswith('.py') else ext[:-3]}"
+            for ext in os.listdir("cogs")
+            if not ext.startswith("_")
+        ]
         for ext in exts:
             await self.load_extension(ext)
         await self.populate_cache()
@@ -247,6 +250,8 @@ class ExultBot(commands.Bot):
 
     async def close(self):
         try:
+            self.dispatch("upload_commands")
+            self.logger.info("Uploaded custom commands.")
             await self.wf.close()
             self.logger.info("Closed Waifu Client.")
             await self._db_listener_connection.close(timeout=5)

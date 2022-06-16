@@ -47,7 +47,7 @@ import pytz
 
 from bot import ExultBot
 from .image_gen.emotion import Marriage
-from .database import ServerStatsDB
+from .database import ServerStatsDB, CustomCommandsDB
 
 # Local Imports
 
@@ -526,10 +526,13 @@ class ServerUtils:
 class CommandUtils:
     def __init__(self, bot: commands.Bot) -> None:
         self.bot: commands.Bot = bot
+        self.db = CustomCommandsDB(bot)
         self.cache: Dict[Union[str, int], Any] = {}
 
-    def checks(self, message: discord.Message) -> bool:
-        if message.author.bot and not message.guild:
+    def checks(self, ctx: Union[discord.Interaction, commands.Context]) -> bool:
+        if not ctx.guild and not (
+            ctx.author.bot if isinstance(ctx, commands.Context) else ctx.user.bot
+        ):
             return False
         return True
 
@@ -542,16 +545,24 @@ class CommandUtils:
         return pre[0] if isinstance(pre, list) else pre
 
     async def create_command(
-        self, ctx: commands.Context, name: str, response: str
+        self,
+        ctx: Union[discord.Interaction, commands.Context],
+        name: str,
+        response: str,
     ) -> None:
-        if self.checks(ctx.message):
+        if self.checks(ctx):
             if ctx.guild is not None:
                 resp = {
                     name: {
-                        "name": name,
-                        "response": response,
-                        "author": ctx.author.id,
-                        "created_id": ctx.message.created_at.timestamp(),
+                        "guild_id": ctx.guild.id,
+                        "command_name": name,
+                        "command_text": response,
+                        "command_creator": ctx.author.id
+                        if isinstance(ctx, commands.Context)
+                        else ctx.user.id,
+                        "created_id": ctx.message.created_at.timestamp()
+                        if isinstance(ctx, commands.Context)
+                        else ctx.created_at.timestamp(),
                     }
                 }
                 try:
@@ -560,16 +571,34 @@ class CommandUtils:
                     self.cache[ctx.guild.id] = {}
                     self.cache[ctx.guild.id].update(resp)
 
+    def cache_command(self, command: dict):
+        guild_id = command.get("guild_id")
+        name = command.get("command_name")
+        response = command.get("command_text")
+        creator = command.get("command_creator")
+        created_at = command.get("created_at")
+        resp = {
+            name: {
+                "guild_id": guild_id,
+                "command_name": name,
+                "command_text": response,
+                "command_creator": creator,
+                "created_id": created_at,
+            }
+        }
+        try:
+            self.cache[guild_id].update(resp)
+        except KeyError:
+            self.cache[guild_id] = {}
+            self.cache[guild_id].update(resp)
+
     async def get_command(
-        self, ctx: commands.Context, name: str
+        self, ctx: Union[discord.Interaction, commands.Context], name: str
     ) -> Optional[Dict[str, Any]]:
-        if self.checks(ctx.message):
+        if self.checks(ctx):
             if ctx.guild is not None:
                 return self.cache[ctx.guild.id].get(name, "Not found..")
 
-    async def upload_db(self, ctx: commands.Context) -> None:
-        if self.checks(ctx.message):
-            if ctx.guild is not None:
-
-                ### Your stuff Andeh
-                self.bot.db.update(self.cache[ctx.guild.id])
+    async def upload_db(self) -> None:
+        for guild in list(self.cache):
+            await self.db.upload_commands(self.cache[guild])
