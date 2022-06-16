@@ -2,21 +2,17 @@ import discord
 
 # Discord Imports
 
-from typing import overload
-import asyncpg
+from typing import TYPE_CHECKING
 
 # Regular Imports
-
-from bot import ExultBot
+if TYPE_CHECKING:
+    from bot import ExultBot
+    import asyncpg
 
 # Local Imports
 
 
 class CoreDB:
-    @overload
-    def __init__(self, bot: discord.Client = None):
-        ...
-
-    def __init__(self, bot: ExultBot = None):
-        self.bot: ExultBot = bot
-        self.pool: asyncpg.Pool = bot.pool
+    def __init__(self, bot: "ExultBot" = None):
+        self.bot: "ExultBot" = bot
+        self.pool: "asyncpg.Pool" = bot.pool

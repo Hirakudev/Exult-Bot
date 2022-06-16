@@ -5,8 +5,6 @@ import io
 from PIL import Image, ImageDraw, ImageChops, ImageOps
 from typing import Optional, Union
 
-from bot import ExultBot
-
 
 class Marriage:
     def __init__(

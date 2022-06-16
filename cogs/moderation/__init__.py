@@ -23,5 +23,5 @@ class Moderation(Core, Purge, Slowmode, Stats, Cases, Case):
 
 async def setup(bot: ExultBot):
     await bot.add_cog(
-        Moderation(bot), guilds=[discord.Object(guild) for guild in bot.app_guilds]
+        Moderation(bot), guilds=[discord.Object(g) for g in bot.app_guilds]
     )

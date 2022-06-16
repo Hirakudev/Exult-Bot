@@ -73,7 +73,7 @@ class ExultBot(commands.Bot):
         ] = collections.defaultdict(set)
         self._db_listener_connection: asyncpg.Connection = listener_connection
 
-        self.owner_ids = [957437570546012240, 349373972103561218, 857103603130302514]
+        self.owner_ids = []
 
     red = 0xFB5F5F
     green = 0x2ECC71
@@ -188,6 +188,7 @@ class ExultBot(commands.Bot):
             self.bot_logs = self.get_channel(933494408203100170)
             self.error_logs = self.get_channel(978641023850909776)
             self.dev_role = self.exult_guild.get_role(914159464406470656)
+            self.owner_ids += [dev.id for dev in self.dev_role.members]
             self._connected = True
             self.startup_time = discord.utils.utcnow() - self.start_time
             msg = (
@@ -267,20 +268,6 @@ class ExultBot(commands.Bot):
         return loop.run_in_executor(
             self.thread_pool, functools.partial(func, *args, **kwargs)
         )
-
-    async def get_or_fetch_user(self, user: discord.User):
-        try:
-            return self.get_member(user) or await self.fetch_member(user)
-        except discord.HTTPException:
-            return None
-
-    @staticmethod
-    async def get_or_fetch_member(guild: discord.Guild, user: Union[discord.User, int]):
-        user = user.id if isinstance(user, discord.User) else user
-        try:
-            return guild.get_member(user) or await guild.fetch_member(user)
-        except discord.HTTPException:
-            return None
 
     @staticmethod
     async def try_send(user: Union[discord.User, discord.Member], *args, **kwargs):

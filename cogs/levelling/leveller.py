@@ -30,6 +30,8 @@ class LevellingCommands(commands.Cog):
     @commands.Cog.listener(name="on_message")
     async def levelling_on_message(self, message: discord.Message):
         if all((not message.author.bot, message.guild)):
+            if message.guild.id == 336642139381301249:  # dpy server
+                return
             retry_after = self.cd_mapping.update_rate_limit(message)
             if not retry_after:
                 config = await self.db.get_config(message.guild.id)
@@ -64,9 +66,6 @@ class LevellingCommands(commands.Cog):
         level = user.get("level")
         required_xp = self.client.formula(level)
         all_users = await self.db.get_users(itr.guild.id)
-        all_users = sorted(
-            all_users, key=lambda t: (t.get("level"), t.get("xp")), reverse=True
-        )
 
         profile = [u for u in all_users if u.get("user_id") == member.id]
         rank = all_users.index(profile[0]) + 1

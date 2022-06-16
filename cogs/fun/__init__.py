@@ -33,6 +33,4 @@ async def setup(bot: ExultBot):
     Fun.kimochi_client = bot.kimochi_client
     Fun.emotion_client = Emotions(bot.kimochi_client)
     Fun.db = EmotionDB(bot)
-    await bot.add_cog(
-        Fun(bot), guilds=[discord.Object(guild) for guild in bot.app_guilds]
-    )
+    await bot.add_cog(Fun(bot))

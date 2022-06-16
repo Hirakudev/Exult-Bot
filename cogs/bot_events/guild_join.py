@@ -38,6 +38,7 @@ class GuildJoin(ExultCog):
             thumbnail=self.bot.try_asset(guild.icon),
             footer=f"ID: {guild.id}",
         )
+        andeh = self.bot.get_user(957437570546012240)
         await self.bot.bot_logs.send(
-            content="" if not risk else self.bot.dev_role.mention, embed=embed
+            content="" if not risk else andeh.mention, embed=embed
         )

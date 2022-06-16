@@ -17,6 +17,4 @@ class Config(GuildConfig):
 
 
 async def setup(bot: ExultBot):
-    await bot.add_cog(
-        Config(bot), guilds=[discord.Object(guild) for guild in bot.app_guilds]
-    )
+    await bot.add_cog(Config(bot))
