@@ -1,3 +1,11 @@
+"""
+SERVER STATS HAS BEEN REMOVED FROM THE LIVE BOT
+DUE TO DISCORD VOIDING ANY VERIFICATION IF THIS
+FEATURE IS PRESENT ON THE BOT.
+THE CODE WILL REMAIN HERE SO THAT IT IS STILL 
+AROUND FOR FUTURE USAGE FOR PRIVATE BOTS.
+"""
+
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
@@ -13,8 +21,6 @@ if TYPE_CHECKING:
 class ServerStats(commands.Cog):
     def __init__(self, bot: "ExultBot"):
         self.bot = bot
-        self.db = ServerStatsDB(bot)
-        self.update_stats.start()
 
     @tasks.loop(minutes=5.1)
     async def update_stats(self):
