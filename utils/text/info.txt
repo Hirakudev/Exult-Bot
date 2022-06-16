@@ -1,0 +1,14 @@
+> Exult is a new up-and-coming startup created and lead by <@957437570546012240> which specialises in development. This genre of development ranges between games development using unity and discord bot development using python. There are plans to expand to other genres of development in the future one of which includes full-stack web development. Exult's aims are simple, produce high-quality software solutions for everyone to enjoy! Exult's team is fully equipped with a range of skills that are all key to ensuring success for all of our projects!
+
+> Our main goal at the moment is to get the startup off the ground through the current projects we are working on. These include our discord bot <@889185777555210281>, our Minecraft Server Network we are currently planning, our very own Minecraft mods, mod packs and plugins also currently being planned, our very own mobile apps and games and much more!
+
+> We believe in communication, not only within the business team, but we mean also with all of our users. This server is here to allow for a method of direct communication with our staff and other users of Exult and we hope that you will use this server to observe our progress as a business as well as learn alongside us!
+
+> Check its description! On desktop, you can find this at the top of the screen when inside the channel, and on mobile, you can simply swipe to the left and it'll be on the screen for you to read.
+
+
+> If you have a question to ask regarding Exult or the discord server itself, feel free to ask it in <#913612289679163412>! A member of our staff team will be with you as soon as they are free to assist you. Or if your concern/issue suits a topic in our <#970812262157778974> panel, feel free to open up a ticket!
+
+> Yes! We want to support our users as well as grow with them. If you'd like to invite your bot to the server for closer assistance with your development, or just for testing purposes, feel free to invite it by doing `/addbot <bot id> <reason>` and a member of the <@&914159464406470656> will review your request!
+
+> Starboard is a nice feature we have that allows us to more publicly "pin" messages that we find either funny, important or memorable. If a message receives 3 or more ⭐ reactions, it will be posted in <#970867034806169611> with a direct link to the message!

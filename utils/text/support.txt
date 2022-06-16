@@ -1,0 +1,12 @@
+> We have a support system put in place so that we can ensure our users have the best experience possible with our products and services. If you find yourself needing help for anything, then please follow the following guidelines.
+
+> Ask in <#913612289679163412>.
+> *This is a channel for community support. Official Supports will also assist in here, but it is more directed towards community support.*
+
+> Create a Ticket in <#970812262157778974>.
+> *Only use this if your issue cannot be solved in <#913612289679163412> and requires you to elevate the problem directly to staff.*
+
+> Create a High-Importance Ticket in <#970812262157778974>.
+> *Misuse of this ticket will have you enlisted on a permanent blacklist for tickets.*
+
+> A support staff member will escalate your issue to higher staff where either a team leader or a director will help you with and resolve your issue.
