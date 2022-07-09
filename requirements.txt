@@ -15,7 +15,7 @@ humanfriendly==10.0
 humanize==4.2.3
 idna==3.3
 import-expression==1.1.4
-jishaku==2.5.0a431+g717f654.master
+jishaku @ git+https://github.com/Gorialis/jishaku
 kimochi @ git+https://github.com/VarMonke/kimochi@fc89b1af3d4d57678ba66c5bdada19e0c983b8ea
 multidict==6.0.2
 parsedatetime==2.6
