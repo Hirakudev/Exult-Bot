@@ -20,16 +20,8 @@ class LevellingClient:
     XP_PER_MESSAGE = 15
     MULTIPLIER = 1
 
-    def formula(self, lvl):
-        return (
-            round(
-                (pi ** -(e ** (1 / factorial(3) * gamma(pi)) / 10))
-                * (log(e ** (lvl * 2) ** 1.078) * cosh(pi))
-                * 10
-                / 100
-            )
-            * 100
-        )
+    def formula(self, lvl, xp):
+        return 5 * (lvl ^ 2) + (50 * lvl) + 100 - xp
 
     def get_msg(self, user, level):
         return f"{user.mention} just levelled up to level {level}!"
@@ -66,8 +58,12 @@ class LevellingClient:
         channel = user.guild.get_channel(channel_id)
         if not channel:
             channel = message.channel
+        try:
 
-        await channel.send(msg)
+            await channel.send(msg)
+        
+        except discord.Forbidden:
+            pass
 
     async def add_xp(self, user: discord.Member, message: discord.Message):
         xp = self.XP_PER_MESSAGE * self.MULTIPLIER
@@ -76,5 +72,5 @@ class LevellingClient:
         level = profile.get("level")
         xp = profile.get("xp")
 
-        if all((level != 0, xp >= self.formula(level))):
+        if all((level != 0, self.formula(level, xp) <= 0)):
             await self.level_up(user, message)
