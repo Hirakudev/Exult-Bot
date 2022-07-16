@@ -175,7 +175,7 @@ class Cases(ExultCog):
     @app_commands.describe(member="The member you want to clear moderation cases for.")
     @guild_staff(admin=True)
     @moderation(self_action=True)
-    async def cases_clear_server_slash(
+    async def cases_clear_member_slash(
         self, itr: discord.Interaction, member: discord.Member
     ):
         await itr.response.defer()

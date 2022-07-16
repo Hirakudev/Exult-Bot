@@ -8,8 +8,7 @@ from bot import ExultBot
 
 
 async def is_owner(itr: Interaction):
-    bot: ExultBot = itr.client  # type: ignore
-    return await bot.is_owner(itr.user)
+    return await itr.client.is_owner(itr.user)
 
 
 def permissions(perms, itr: Interaction):

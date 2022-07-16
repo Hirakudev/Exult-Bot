@@ -39,21 +39,31 @@ class Core(ExultCog):
 
         await bot.try_send(member, embed=embed)
         # await itr.guild.ban(member, reason=reason)
-        case = await CasesDB(self.bot).add_case(
-            "Ban",
-            itr.guild.id,
-            member.id,
-            itr.user.id,
+        # case = await CasesDB(self.bot).add_case(
+        #     "Ban",
+        #     itr.guild.id,
+        #     member.id,
+        #     itr.user.id,
+        #     reason,
+        #     discord.utils.utcnow(),
+        #     None,
+        #     return_case=True,
+        # )
+
+        case = Ban(
+            itr.client,
+            None,
+            member,
+            itr.user,
             reason,
             discord.utils.utcnow(),
-            None,
-            return_case=True,
+            None
         )
-
+        result = await case.confirm_action()
         log_embed = embed_builder(
             author=[
                 bot.try_asset(member.avatar, itr.guild.icon),
-                f"Case {case['num']} | Ban",
+                f"Case {result['num']} | Ban",
             ],
             thumbnail=bot.try_asset(member.avatar, itr.guild.icon),
             fields=[
@@ -66,8 +76,8 @@ class Core(ExultCog):
 
         await followup.send(embed=log_embed)
 
-        if case["log_channel"]:
-            channel = bot.get_channel(case["log_channel"])
+        if result["log_channel"]:
+            channel = bot.get_channel(result["log_channel"])
             log_embed.add_field(
                 name="Banned:",
                 value=f"{discord.utils.format_dt(discord.utils.utcnow(), style='R')}",
@@ -100,21 +110,31 @@ class Core(ExultCog):
 
         await bot.try_send(member, embed=embed)
         # await itr.guild.kick(member, reason=reason)
-        case = await CasesDB(self.bot).add_case(
-            "Kick",
-            itr.guild.id,
-            member.id,
-            itr.user.id,
+        # case = await CasesDB(self.bot).add_case(
+        #     "Kick",
+        #     itr.guild.id,
+        #     member.id,
+        #     itr.user.id,
+        #     reason,
+        #     discord.utils.utcnow(),
+        #     None,
+        #     return_case=True,
+        # )
+        case = Kick(
+            bot,
+            None,
+            member,
+            itr.user,
             reason,
             discord.utils.utcnow(),
-            None,
-            return_case=True,
+            None
         )
+        result = await case.confirm_action()
 
         log_embed = embed_builder(
             author=[
                 bot.try_asset(member.avatar, itr.guild.icon),
-                f"Case {case['num']} | Kick",
+                f"Case {result['num']} | Kick",
             ],
             thumbnail=bot.try_asset(member.avatar, itr.guild.icon),
             fields=[
@@ -127,8 +147,8 @@ class Core(ExultCog):
 
         await followup.send(embed=log_embed)
 
-        if case["log_channel"]:
-            channel = bot.get_channel(case["log_channel"])
+        if result["log_channel"]:
+            channel = bot.get_channel(result["log_channel"])
             log_embed.add_field(
                 name="Kicked:",
                 value=f"{discord.utils.format_dt(discord.utils.utcnow(), style='R')}",

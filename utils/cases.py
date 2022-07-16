@@ -1,35 +1,187 @@
 import datetime
+from uuid import *
+from typing import *
 
+import discord
+from bot import ExultBot
+from utils import CasesDB, ExultErrors
 class CaseBase:
     """
-    A class representing a generic case.
-    :param case_type: str - The Unique ID of the case
-    :param guild_id: int - The ID of the guild the case is in
-    :param user_id: int - The ID of the user the case is for
-    :param moderator_id: int - The ID of the moderator who created the case
-    :param reason: str - The reason for the case
-    :param created_at: datetime.datetime - The time the case was created
-    :param expires: datetime.datetime - The time the case expires
-    :param kwargs: dict - Any additional data to be stored with the case
-
+    Base Class for all cases
     """
     def __init__(
         self,
-        case_type: str,
-        guild_id: int,
-        user_id: int,
-        moderator_id: int,
-        reason: str,
-        created_at: datetime.datetime,
-        expires: datetime.datetime = None,
+        client:ExultBot = ...,
+        case_id:UUID = ...,
+        user:discord.Member = ...,
+        moderator:discord.Member = ...,
+        reason: str = ...,
+        created_at: datetime.datetime = ...,
+        expires: datetime.datetime = ...,
         **kwargs
     ):
-        self.case_type = case_type
-        self.guild_id = guild_id
-        self.user_id = user_id
-        self.moderator_id = moderator_id
+        self.case_id = case_id if case_id else uuid4()
+        self.case_type = self.__class__.__name__
+        self.guild = user.guild
+        self.moderator = moderator
+        self.user = user
         self.reason = reason
         self.created_at = created_at
         self.expires = expires
         self.kwargs = kwargs
+        self._cases = CasesDB(client)
+        self.__dict__ = {
+            "case_id": self.case_id,
+            "case_type": self.case_type,
+            "guild_id": self.guild_id,
+            "user_id": self.user_id,
+            "moderator_id": self.moderator_id,
+            "reason": self.reason,
+            "created_at": self.created_at,
+            "expires": self.expires,
+            "kwargs": self.kwargs,
+        }
+    
+    def __str__(self) -> str:
+        return f"""
+*Case Information*
+
+Case ID - {self.case_id}
+Case Type - {self.case_type}
+Reason - {self.reason}
+Guild ID - {self.guild.id}
+Guild Name - {self.guild.name}
+User ID - {self.user_id}
+Moderator ID - {self.moderator_id}
+Created At - <t:{int(self.created_at.timestamp)}:f>
+Expires - <t:{self.expires}:f>
+Data - {self.kwargs}
+
+"""
+
+
+
+class Case(CaseBase):
+    """
+    Class representing a generic case \n
+    Warns are a good example of a generic case
+    """
+    
+    async def send_case(self):
+        """
+        Sends the case to the database\n
+
+        Returns
+        --------
+        :class:`Dict[str, Any]`
+            Dictionary containing the case number and the channel_id of the moderation log channel
         
+        Raises
+        -------
+        :class:`CaseAlreadyExists`
+            Case already exists in the database
+        """
+        
+            
+        
+        if await self._cases.check_case_exists(self.case_id):
+            raise ExultErrors.CaseAlreadyExists(self)
+        return await self._cases.add_case(
+            self.case_type,
+            self.guild_id,
+            self.user_id,
+            self.moderator_id,
+            self.reason,
+            self.created_at,
+            self.expires,
+            return_case = True
+        )
+
+    async def delete_case(self):
+        """
+        Deletes the case from the database
+
+        Raises
+        -------
+        :class:`CaseDoesNotExist`
+            Case this case doesn't exist in the database
+        """
+        if not await self._cases.check_case_exists(self.case_id):
+            raise ExultErrors.CaseDoesNotExist(self)
+        await self._cases.delete_case(self.case_id)
+    
+    async def update_case(
+        self,
+        *,
+        reason: str = None,
+    ):
+        """
+        Updates the case in the database
+
+        Raises
+        -------
+        :class:`CaseDoesNotExist`
+            Case this case doesn't exist in the database
+        """
+        if not reason: return
+        self.reason = reason
+        if not await self._cases.check_case_exists(self.case_id):
+            raise ExultErrors.CaseDoesNotExist(self)
+        await self._cases.update_case(self.case_id, self.reason)
+        
+
+class Kick(Case):
+    """
+    A class representing a kick case
+    """
+    async def confirm_action(self) -> Dict[str, Any] | None:
+        """
+        Quick action function that will send the case to the database then kick the user.
+
+        Returns
+        --------
+        :class:`Dict[str, Any]`
+            Dictionary containing the case number and the channel_id of the moderation log channel
+
+        Raises
+        -------
+        :class:`CaseAlreadyExists`
+            Case already exists in the database
+
+        """
+        case = await self.send_case()
+        await self.moderator.guild.kick(self.user, reason=self.reason)
+        return case
+    
+
+class Ban(Case):    
+    """
+    class representing a ban case
+    """
+    async def confirm_action(self):
+        """
+        Quick action function that will send the case to the database then ban the user.
+
+        Returns
+        --------
+        :class:`Dict[str, Any]`
+            Dictionary containing the case number and the channel_id of the moderation log channel
+
+        Raises
+        -------
+        :class:`CaseAlreadyExists`
+            Case already exists in the database
+
+        """
+        await self.send_case()
+        await self.moderator.guild.ban(self.user, reason=self.reason)
+
+
+class Mute(Case):
+    """
+    class representing a mute case
+    """
+
+    async def confirm_action(self):
+        ...
+
