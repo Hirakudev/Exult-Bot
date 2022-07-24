@@ -4,3 +4,4 @@ from .pokemon import PokemonGuess
 from .avatar import AvatarView
 from .emotions import MarriageView
 from .serverstats import DropDownView as ServerStatsView
+from .tickets import CreatePanelView, EditPanelView

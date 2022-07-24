@@ -18,7 +18,7 @@ class ExultCog(commands.Cog):
 
 
 class Interaction(discord.Interaction, Generic[EB]):
-    client: EB  # type: ignore
+    client: ExultBot  # type: ignore
 
 
 class KnownInteraction(Interaction[EB]):

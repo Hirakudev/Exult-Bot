@@ -7,3 +7,4 @@ from .levelling import LevellingDB
 from .emotion import EmotionDB
 from .serverstats import ServerStatsDB
 from .customcommands import CustomCommandsDB
+from .tickets import TicketsDB

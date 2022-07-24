@@ -270,3 +270,36 @@ CREATE TRIGGER update_guild_staff_cache_trigger
   ON guilds
   FOR EACH ROW
   EXECUTE PROCEDURE update_guild_staff_cache();
+
+
+CREATE TABLE IF NOT EXISTS ticketpanels(
+    guild_id BIGINT
+        REFERENCES guilds(guild_id)
+            ON DELETE CASCADE,
+    panel_name TEXT NOT NULL,
+    ticket_category BIGINT NOT NULL,
+    message_content TEXT,
+    message_id BIGINT,
+    views JSONB[] NOT NULL DEFAULT ARRAY[]::JSONB[], -- Whitelisted Roles, Custom ID, Label, Emoji etc
+    PRIMARY KEY (guild_id, panel_name)
+);
+
+CREATE TABLE IF NOT EXISTS ticketpanelembeds(
+    guild_id BIGINT,
+    panel_name TEXT,
+    embed_description TEXT,
+    embed_colour BIGINT,
+    embed_thumbnail TEXT,
+    embed_image TEXT,
+    FOREIGN KEY (guild_id, panel_name) REFERENCES ticketpanels (guild_id, panel_name)
+);
+
+CREATE TABLE IF NOT EXISTS tickets(
+    guild_id BIGINT
+        REFERENCES guilds(guild_id)
+            ON DELETE CASCADE,
+    channel_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (guild_id, channel_id)
+);

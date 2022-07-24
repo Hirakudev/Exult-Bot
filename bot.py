@@ -18,7 +18,7 @@ import traceback
 import waifuim
 from concurrent import futures
 from contextlib import asynccontextmanager
-from typing import Any, Awaitable, Optional, Set, TypeVar, Union, Callable
+from typing import Any, Awaitable, Optional, List, Set, TypeVar, Union, Callable
 from typing_extensions import ParamSpec
 
 # Regular Imports
@@ -81,6 +81,7 @@ class ExultBot(commands.Bot):
         889185777555210281, permissions=discord.Permissions(3757567166)
     )
     friend_guilds = [652725365856272394]
+    ticketpanels: List[dict] = []
 
     async def setup_hook(self):
         exts = ["jishaku"] + [
