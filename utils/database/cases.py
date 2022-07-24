@@ -11,11 +11,19 @@ import asyncpg
 
 from .logs import LogsDB
 from ._core import CoreDB
-
+from utils.cases import *
 # Local Imports
 
 
 class CasesDB(CoreDB):
+    __case_types__ = {
+        "Ban": Ban,
+        "Kick": Kick,
+        "Mute": Mute,
+        "Unban": Unban,
+        "Unmute": Unmute,
+        "Case": Case,
+    }
     def prepare_time(self, time: datetime.datetime = None):
         if time:
             return time.replace(tzinfo=None)
@@ -32,16 +40,22 @@ class CasesDB(CoreDB):
         expires: datetime.datetime = None,
         **kwargs
     ):
+        """
+        Adds a case to the database.
+        
+
+        """
         async with self.pool.acquire() as conn:
             async with conn.transaction():
                 await conn.execute(
-                    "INSERT INTO cases (case_type, guild_id, user_id, moderator_id, reason, created_at, expires) VALUES "
-                    "($1, $2, $3, $4, $5, $6, $7)",
+                    "INSERT INTO cases (case_type, guild_id, user_id, moderator_id, reason, created_at, last_updated, expires) VALUES "
+                    "($1, $2, $3, $4, $5, $6, $7, $8)",
                     case_type,
                     guild_id,
                     user_id,
                     moderator_id,
                     reason,
+                    self.prepare_time(created_at),
                     self.prepare_time(created_at),
                     self.prepare_time(expires),
                 )
@@ -59,8 +73,21 @@ class CasesDB(CoreDB):
                     "SELECT * FROM cases WHERE case_id=$1", case_id
                 )
                 if case["guild_id"] == guild_id:
-                    return dict(case)
-        return False
+                    case = dict(case)
+                    guild:discord.Guild = self.bot.get_guild(guild_id)
+                    return self.__case_types__[case["case_type"]](
+                        case["case_id"],
+                        guild,
+                        guild.get_member(case["moderator_id"]),
+                        guild.get_member(case["user_id"]),
+                        case["reason"],
+                        datetime.datetime.fromtimestamp(case['create_at']),
+                        datetime.datetime.fromtimestamp(case['last_updated']),
+                        datetime.datetime.fromtimestamp(case['expires'])
+                    )
+                return None
+
+
 
     async def fetch_case(self, case_id: int):
         async with self.pool.acquire() as conn:
@@ -69,8 +96,19 @@ class CasesDB(CoreDB):
                     "SELECT * FROM cases WHERE case_id=$1", case_id
                 )
                 if case:
-                    return dict(case)
-        return None
+                    case = dict(case)
+
+                    return self.__case_types__[case["case_type"]](
+                        case["case_id"],
+                        self.bot.get_guild(case["guild_id"]),
+                        self.bot.get_user(case["moderator_id"]),
+                        self.bot.get_user(case["user_id"]),
+                        case["reason"],
+                        datetime.datetime.fromtimestamp(case['create_at']),
+                        datetime.datetime.fromtimestamp(case['last_updated']),
+                        datetime.datetime.fromtimestamp(case['expires'])
+                    )
+                return None
 
     async def update_case(self, case_id: int, reason: str):
         async with self.pool.acquire() as conn:
@@ -106,7 +144,18 @@ class CasesDB(CoreDB):
                     moderator_id,
                 )
                 if len(cases):
-                    return [dict(case) for case in cases]
+                    cases = [dict(case) for case in cases]
+                    return [self.__case_types__[case["case_type"]](
+                        case["case_id"],
+                        self.bot.get_guild(case["guild_id"]),
+                        self.bot.get_user(case["moderator_id"]),
+                        self.bot.get_user(case["user_id"]),
+                        case["reason"],
+                        datetime.datetime.fromtimestamp(case['create_at']),
+                        datetime.datetime.fromtimestamp(case['last_updated']),
+                        datetime.datetime.fromtimestamp(case['expires'])
+                    ) for case in cases]
+                    
         return None
 
     async def get_cases_by_member(self, guild_id: int, user_id: int) -> List[Dict[str, Any]]:
@@ -118,7 +167,17 @@ class CasesDB(CoreDB):
                     user_id,
                 )
                 if len(cases):
-                    return [dict(case) for case in cases]
+                    cases = [dict(case) for case in cases]
+                    return [self.__case_types__[case["case_type"]](
+                        case["case_id"],
+                        self.bot.get_guild(case["guild_id"]),
+                        self.bot.get_user(case["moderator_id"]),
+                        self.bot.get_user(case["user_id"]),
+                        case["reason"],
+                        datetime.datetime.fromtimestamp(case['create_at']),
+                        datetime.datetime.fromtimestamp(case['last_updated']),
+                        datetime.datetime.fromtimestamp(case['expires'])
+                    ) for case in cases]
         return None
 
     async def get_cases_by_guild(self, guild_id: int):
@@ -128,7 +187,17 @@ class CasesDB(CoreDB):
                     "SELECT * FROM cases WHERE guild_id=$1", guild_id
                 )
                 if len(cases):
-                    return [dict(case) for case in cases]
+                    cases = [dict(case) for case in cases]
+                    return [self.__case_types__[case["case_type"]](
+                        case["case_id"],
+                        self.bot.get_guild(case["guild_id"]),
+                        self.bot.get_user(case["moderator_id"]),
+                        self.bot.get_user(case["user_id"]),
+                        case["reason"],
+                        datetime.datetime.fromtimestamp(case['create_at']),
+                        datetime.datetime.fromtimestamp(case['last_updated']),
+                        datetime.datetime.fromtimestamp(case['expires'])
+                    ) for case in cases]
         return None
 
     async def delete_cases_for_guild(self, guild_id: int):

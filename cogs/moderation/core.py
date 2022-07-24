@@ -38,19 +38,8 @@ class Core(ExultCog):
         )
 
         await bot.try_send(member, embed=embed)
-        # await itr.guild.ban(member, reason=reason)
-        # case = await CasesDB(self.bot).add_case(
-        #     "Ban",
-        #     itr.guild.id,
-        #     member.id,
-        #     itr.user.id,
-        #     reason,
-        #     discord.utils.utcnow(),
-        #     None,
-        #     return_case=True,
-        # )
 
-        case = Ban(
+        case = await Ban(
             itr.client,
             None,
             member,
@@ -58,12 +47,14 @@ class Core(ExultCog):
             reason,
             discord.utils.utcnow(),
             None
-        )
-        result = await case.confirm_action()
+        ).confirm_action()
+
+
+
         log_embed = embed_builder(
             author=[
                 bot.try_asset(member.avatar, itr.guild.icon),
-                f"Case {result['num']} | Ban",
+                f"Case {case['num']} | Ban",
             ],
             thumbnail=bot.try_asset(member.avatar, itr.guild.icon),
             fields=[
@@ -76,8 +67,8 @@ class Core(ExultCog):
 
         await followup.send(embed=log_embed)
 
-        if result["log_channel"]:
-            channel = bot.get_channel(result["log_channel"])
+        if case["log_channel"]:
+            channel = bot.get_channel(case["log_channel"])
             log_embed.add_field(
                 name="Banned:",
                 value=f"{discord.utils.format_dt(discord.utils.utcnow(), style='R')}",
@@ -109,18 +100,8 @@ class Core(ExultCog):
         )
 
         await bot.try_send(member, embed=embed)
-        # await itr.guild.kick(member, reason=reason)
-        # case = await CasesDB(self.bot).add_case(
-        #     "Kick",
-        #     itr.guild.id,
-        #     member.id,
-        #     itr.user.id,
-        #     reason,
-        #     discord.utils.utcnow(),
-        #     None,
-        #     return_case=True,
-        # )
-        case = Kick(
+
+        case = await Kick(
             bot,
             None,
             member,
@@ -128,13 +109,12 @@ class Core(ExultCog):
             reason,
             discord.utils.utcnow(),
             None
-        )
-        result = await case.confirm_action()
+        ).confirm_action()
 
         log_embed = embed_builder(
             author=[
                 bot.try_asset(member.avatar, itr.guild.icon),
-                f"Case {result['num']} | Kick",
+                f"Case {case['num']} | Kick",
             ],
             thumbnail=bot.try_asset(member.avatar, itr.guild.icon),
             fields=[
@@ -147,8 +127,8 @@ class Core(ExultCog):
 
         await followup.send(embed=log_embed)
 
-        if result["log_channel"]:
-            channel = bot.get_channel(result["log_channel"])
+        if case["log_channel"]:
+            channel = bot.get_channel(case["log_channel"])
             log_embed.add_field(
                 name="Kicked:",
                 value=f"{discord.utils.format_dt(discord.utils.utcnow(), style='R')}",
@@ -180,16 +160,15 @@ class Core(ExultCog):
 
         await bot.try_send(user, embed=embed)
 
-        case = await CasesDB(bot).add_case(
-            "Unban",
-            itr.guild.id,
-            user.id,
-            itr.user.id,
+        case = await Unban(
+            self.bot,
+            None,
+            user,
+            itr.user,
             reason,
             discord.utils.utcnow(),
-            None,
-            return_case=True,
-        )
+            None
+        ).confirm_action()
 
         log_embed = embed_builder(
             author=[
@@ -239,7 +218,7 @@ class Core(ExultCog):
         expires = datetime.datetime.utcnow() + datetime.timedelta(days=28)
         expires = bot.time(expires)
 
-        await member.timeout(expires, reason=reason)
+        
 
         embed = embed_builder(
             title=f"You have been muted in {itr.guild.name}",
@@ -249,16 +228,16 @@ class Core(ExultCog):
 
         await bot.try_send(member, embed=embed)
 
-        case = await CasesDB(bot).add_case(
-            "Mute",
-            itr.guild.id,
-            member.id,
-            itr.user.id,
+        case = await Kick(
+            self.bot,
+            None,
+            member,
+            itr.user,
             reason,
             discord.utils.utcnow(),
-            expires,
-            return_case=True,
-        )
+            expires
+        ).confirm_action()
+        
 
         log_embed = embed_builder(
             author=[
@@ -312,7 +291,6 @@ class Core(ExultCog):
         followup: discord.Webhook = itr.followup
         expires = time_handler(duration)
 
-        await member.timeout(expires, reason=reason)
 
         embed = embed_builder(
             title=f"You have been muted in {itr.guild.name}",
@@ -322,16 +300,15 @@ class Core(ExultCog):
 
         await bot.try_send(member, embed=embed)
 
-        case = await CasesDB(bot).add_case(
-            "Tempmute",
-            itr.guild.id,
-            member.id,
-            itr.user.id,
+        case = await Kick(
+            self.bot,
+            None,
+            member,
+            itr.user,
             reason,
             discord.utils.utcnow(),
-            expires,
-            return_case=True,
-        )
+            expires
+        ).confirm_action()
 
         log_embed = embed_builder(
             author=[
@@ -391,16 +368,15 @@ class Core(ExultCog):
 
         await bot.try_send(member, embed=embed)
 
-        case = await CasesDB(bot).add_case(
-            "Unmute",
-            itr.guild.id,
-            member.id,
-            itr.user.id,
+        case = await Unmute(
+            self.bot,
+            None,
+            member,
+            itr.user,
             reason,
             discord.utils.utcnow(),
-            None,
-            return_case=True,
-        )
+            None
+        ).confirm_action()
 
         log_embed = embed_builder(
             author=[

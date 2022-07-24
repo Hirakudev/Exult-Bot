@@ -4,7 +4,7 @@ from typing import *
 
 import discord
 from bot import ExultBot
-from utils import CasesDB, ExultErrors
+from utils import CasesDB, CaseAlreadyExists, CaseDoesNotExist
 class CaseBase:
     """
     Base Class for all cases
@@ -17,6 +17,7 @@ class CaseBase:
         moderator:discord.Member = ...,
         reason: str = ...,
         created_at: datetime.datetime = ...,
+        last_updated:datetime.datetime = ...,
         expires: datetime.datetime = ...,
         **kwargs
     ):
@@ -27,8 +28,10 @@ class CaseBase:
         self.user = user
         self.reason = reason
         self.created_at = created_at
+        self.last_updated = last_updated
         self.expires = expires
         self.kwargs = kwargs
+        self.client = client
         self._cases = CasesDB(client)
         self.__dict__ = {
             "case_id": self.case_id,
@@ -85,7 +88,7 @@ class Case(CaseBase):
             
         
         if await self._cases.check_case_exists(self.case_id):
-            raise ExultErrors.CaseAlreadyExists(self)
+            raise CaseAlreadyExists(self)
         return await self._cases.add_case(
             self.case_type,
             self.guild_id,
@@ -107,7 +110,7 @@ class Case(CaseBase):
             Case this case doesn't exist in the database
         """
         if not await self._cases.check_case_exists(self.case_id):
-            raise ExultErrors.CaseDoesNotExist(self)
+            raise CaseDoesNotExist(self)
         await self._cases.delete_case(self.case_id)
     
     async def update_case(
@@ -126,7 +129,7 @@ class Case(CaseBase):
         if not reason: return
         self.reason = reason
         if not await self._cases.check_case_exists(self.case_id):
-            raise ExultErrors.CaseDoesNotExist(self)
+            raise CaseDoesNotExist(self)
         await self._cases.update_case(self.case_id, self.reason)
         
 
@@ -149,9 +152,9 @@ class Kick(Case):
             Case already exists in the database
 
         """
-        case = await self.send_case()
+        
         await self.moderator.guild.kick(self.user, reason=self.reason)
-        return case
+        return await self.send_case()
     
 
 class Ban(Case):    
@@ -173,8 +176,9 @@ class Ban(Case):
             Case already exists in the database
 
         """
-        await self.send_case()
+        
         await self.moderator.guild.ban(self.user, reason=self.reason)
+        return await self.send_case()
 
 
 class Mute(Case):
@@ -183,5 +187,65 @@ class Mute(Case):
     """
 
     async def confirm_action(self):
+        """
+        Quick action function that will send the case to the database then mute the user.
+
+        Returns
+        --------
+        :class:`Dict[str, Any]`
+            Dictionary containing the case number and the channel_id of the moderation log channel
+
+        Raises
+        -------
+        :class:`CaseAlreadyExists`
+            Case already exists in the database
+
+        """
+        await self.user.timeout(self.expires, reason=self.reason)
+        return await self.send_case()
         ...
 
+
+class Unban(Case):
+    """
+    class representing a unban case
+    """
+    async def confirm_action(self):
+        """
+        Quick action function that will send the case to the database then unban the user.
+
+        Returns
+        --------
+        :class:`Dict[str, Any]`
+            Dictionary containing the case number and the channel_id of the moderation log channel
+
+        Raises
+        -------
+        :class:`CaseAlreadyExists`
+            Case already exists in the database
+
+        """
+        await self.moderator.guild.unban(self.user, reason=self.reason)
+        return await self.send_case()
+
+class Unmute(Case):
+    """
+    class representing a unmute case
+    """
+    async def confirm_action(self):
+        """
+        Quick action function that will send the case to the database then unmute the user.
+
+        Returns
+        --------
+        :class:`Dict[str, Any]`
+            Dictionary containing the case number and the channel_id of the moderation log channel
+
+        Raises
+        -------
+        :class:`CaseAlreadyExists`
+            Case already exists in the database
+
+        """
+        await self.user.timeout(None)
+        return await self.send_case()
