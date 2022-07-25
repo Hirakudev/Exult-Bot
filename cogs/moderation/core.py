@@ -38,17 +38,18 @@ class Core(ExultCog):
         )
 
         await bot.try_send(member, embed=embed)
-        # await itr.guild.ban(member, reason=reason)
-        case = await CasesDB(self.bot).add_case(
-            "Ban",
-            itr.guild.id,
-            member.id,
-            itr.user.id,
+
+        case = await Ban(
+            itr.client,
+            None,
+            member,
+            itr.user,
             reason,
             discord.utils.utcnow(),
-            None,
-            return_case=True,
-        )
+            None
+        ).confirm_action()
+
+
 
         log_embed = embed_builder(
             author=[
@@ -99,17 +100,16 @@ class Core(ExultCog):
         )
 
         await bot.try_send(member, embed=embed)
-        # await itr.guild.kick(member, reason=reason)
-        case = await CasesDB(self.bot).add_case(
-            "Kick",
-            itr.guild.id,
-            member.id,
-            itr.user.id,
+
+        case = await Kick(
+            bot,
+            None,
+            member,
+            itr.user,
             reason,
             discord.utils.utcnow(),
-            None,
-            return_case=True,
-        )
+            None
+        ).confirm_action()
 
         log_embed = embed_builder(
             author=[
@@ -160,16 +160,15 @@ class Core(ExultCog):
 
         await bot.try_send(user, embed=embed)
 
-        case = await CasesDB(bot).add_case(
-            "Unban",
-            itr.guild.id,
-            user.id,
-            itr.user.id,
+        case = await Unban(
+            self.bot,
+            None,
+            user,
+            itr.user,
             reason,
             discord.utils.utcnow(),
-            None,
-            return_case=True,
-        )
+            None
+        ).confirm_action()
 
         log_embed = embed_builder(
             author=[
@@ -219,7 +218,7 @@ class Core(ExultCog):
         expires = datetime.datetime.utcnow() + datetime.timedelta(days=28)
         expires = bot.time(expires)
 
-        await member.timeout(expires, reason=reason)
+        
 
         embed = embed_builder(
             title=f"You have been muted in {itr.guild.name}",
@@ -229,16 +228,16 @@ class Core(ExultCog):
 
         await bot.try_send(member, embed=embed)
 
-        case = await CasesDB(bot).add_case(
-            "Mute",
-            itr.guild.id,
-            member.id,
-            itr.user.id,
+        case = await Kick(
+            self.bot,
+            None,
+            member,
+            itr.user,
             reason,
             discord.utils.utcnow(),
-            expires,
-            return_case=True,
-        )
+            expires
+        ).confirm_action()
+        
 
         log_embed = embed_builder(
             author=[
@@ -292,7 +291,6 @@ class Core(ExultCog):
         followup: discord.Webhook = itr.followup
         expires = time_handler(duration)
 
-        await member.timeout(expires, reason=reason)
 
         embed = embed_builder(
             title=f"You have been muted in {itr.guild.name}",
@@ -302,16 +300,15 @@ class Core(ExultCog):
 
         await bot.try_send(member, embed=embed)
 
-        case = await CasesDB(bot).add_case(
-            "Tempmute",
-            itr.guild.id,
-            member.id,
-            itr.user.id,
+        case = await Kick(
+            self.bot,
+            None,
+            member,
+            itr.user,
             reason,
             discord.utils.utcnow(),
-            expires,
-            return_case=True,
-        )
+            expires
+        ).confirm_action()
 
         log_embed = embed_builder(
             author=[
@@ -371,16 +368,15 @@ class Core(ExultCog):
 
         await bot.try_send(member, embed=embed)
 
-        case = await CasesDB(bot).add_case(
-            "Unmute",
-            itr.guild.id,
-            member.id,
-            itr.user.id,
+        case = await Unmute(
+            self.bot,
+            None,
+            member,
+            itr.user,
             reason,
             discord.utils.utcnow(),
-            None,
-            return_case=True,
-        )
+            None
+        ).confirm_action()
 
         log_embed = embed_builder(
             author=[
